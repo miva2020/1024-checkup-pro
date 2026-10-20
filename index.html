@@ -702,7 +702,8 @@ function analyzeWork(inp) {
       .concat(assetRate!==null?[["今日资产率",assetRate+"%"]]:[]),
     issues:issues.slice(0,5), rxKeys:rxSet,
     hero:{type:"wage", realHourly, nominalHourly, shrink, meetingCost, commuteYear, overtimeGift},
-    bonus:assetRate!==null?{title:"今日事项",lines:assetList.slice(0,4).map(x=>(x.a?"◆ 资产型 ":"◇ 消耗型 ")+x.t)}:null
+    bonus:assetRate!==null?{title:"今日事项",lines:assetList.slice(0,4).map(x=>(x.a?"◆ 资产型 ":"◇ 消耗型 ")+x.t)}:null,
+    assetRate: assetRate
   });
 }
 
@@ -888,7 +889,8 @@ function buildResult(m,score,d){
     mode:m, score, tag:v.tag, color:v.color,
     verdict:v.lines[Math.floor(Math.random()*v.lines.length)],
     epitaph:epi.t, radar:d.radar, metrics:d.metrics,
-    issues:d.issues||[], rx, hero:d.hero||null, bonus:d.bonus||null, lang:d.lang||null, ts:Date.now()
+    issues:d.issues||[], rx, hero:d.hero||null, bonus:d.bonus||null, lang:d.lang||null,
+    assetRate:d.assetRate!=null?d.assetRate:null, ts:Date.now()
   };
 }
 
@@ -902,7 +904,7 @@ const ctx=cv.getContext("2d");
 // 精确推算画布高度：先算内容真实高度，再决定画布，避免溢出与大片空白
 function layout(r){
   const n = r.metrics.length;
-  let y = r.hero ? 470 : 460;                                  // header + hero 区
+  let y = r.hero ? 550 : 460;                                  // header + hero 区（hero 含本月累计横条）
   y += Math.max(234, 30*(n+1) + 20);                           // 雷达区 / 指标区（取较高者）
   y += 26 + 34 + (r.issues.length ? Math.min(r.issues.length,5)*54 : 30);  // 病灶标题 + 条目
   y += 10 + 24 + 34 + r.rx.length*34;                          // 处方标题 + 条目
@@ -1039,6 +1041,34 @@ function drawBonus(r,y){
   r.bonus.lines.forEach(l=>{ yy=wrap(l,78,yy,W-160,15,"#b9cbe0",26,400)+4; });
   return y+h+16;
 }
+function drawMonthly(r,y){
+  const d=new Date();
+  const mo=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+  const log=loadWorklog().filter(x=>x.date&&x.date.startsWith(mo));
+  const days=log.length;
+  const overtimeTotal=Math.round(log.reduce((s,x)=>s+(x.overtimeGift||0),0));
+  const meetingTotal=Math.round(log.reduce((s,x)=>s+(x.meetingCost||0),0));
+  const avg=days?Math.round(log.reduce((s,x)=>s+(x.score||0),0)/days):null;
+  txt("本月累计",52,y,15,"#4b5c73",400);
+  if(days>=2){
+    const sorted=[...log].sort((a,b)=>a.date<b.date?-1:1);
+    const diff=sorted[sorted.length-1].shrink-sorted[sorted.length-2].shrink;
+    txt("时薪缩水较昨日 "+(diff>0?"↑":diff<0?"↓":"→"), W-52, y, 13, diff<0?"#00ff9d":diff>0?"#ff8a3d":"#8ea3bd", 600, "right");
+  }
+  y+=14;
+  const blocks=[
+    ["累计加班白送","¥"+fmt(overtimeTotal)],
+    ["累计会议烧掉","¥"+fmt(meetingTotal)],
+    ["已记录",days+" 天 · 平均 "+(avg==null?"--":avg+" 分")]
+  ];
+  blocks.forEach((b,i)=>{
+    const bx=52+i*176;
+    ctx.fillStyle="rgba(255,255,255,.04)"; roundRect(bx,y,164,54,10); ctx.fill();
+    txt(b[0],bx+14,y+20,13,"#7d8fa8",400);
+    txt(b[1],bx+14,y+44,16,"#ffffff",800);
+  });
+  return y+54+12;
+}
 function drawEpitaph(r){
   const y=H-162;
   ctx.fillStyle="rgba(255,255,255,.035)";
@@ -1088,7 +1118,7 @@ function drawReport(r){
       txt(b[0],bx+14,388,13,"#7d8fa8",400);
       txt(b[1],bx+14,416,22,"#ffffff",800);
     });
-    y=470;
+    y=drawMonthly(r,470);
   } else {
     drawScoreRing(190,258,84,r.score,r.color,"健康分");
     ctx.fillStyle=r.color+"1f"; roundRect(320,190,220,42,21); ctx.fill();
@@ -1131,6 +1161,19 @@ function ctxWidth(s,size,weight){
    长期榜单：localStorage + 榜单码接力（零后端联机）
    ============================================================ */
 const BK="check1024_board_v1";
+const WL="check1024_worklog_v1";
+function loadWorklog(){ try{ return JSON.parse(localStorage.getItem(WL)||"[]"); }catch(e){ return []; } }
+function saveWorklog(l){ try{ localStorage.setItem(WL,JSON.stringify(l)); }catch(e){} }
+function upsertWorklog(r){
+  const d=new Date();
+  const today=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const l=loadWorklog();
+  const item={ date:today, score:r.score, realHourly:r.hero.realHourly, shrink:r.hero.shrink,
+    meetingCost:r.hero.meetingCost, overtimeGift:r.hero.overtimeGift, assetRate:r.assetRate!=null?r.assetRate:null };
+  const i=l.findIndex(x=>x.date===today);
+  if(i>=0) l[i]=item; else l.push(item);
+  saveWorklog(l);
+}
 function loadBoard(){ try{ return JSON.parse(localStorage.getItem(BK)||"[]"); }catch(e){ return []; } }
 function saveBoard(l){ try{ localStorage.setItem(BK,JSON.stringify(l)); }catch(e){} }
 function boardAdd(item){
@@ -1314,6 +1357,7 @@ function runWork(){
     overtime:$("overtime").value,rest:$("rest").value,tasks:$("tasks").value};
   last=analyzeWork(inp);
   teamList=null;
+  upsertWorklog(last);
   drawReport(last);
   $("ph").style.display="none"; cv.style.display="block"; $("acts").style.display="flex"; $("shareBar").style.display="flex";
   $("stat").textContent=`真实时薪 ¥${last.hero.realHourly.toFixed(1)}`;
