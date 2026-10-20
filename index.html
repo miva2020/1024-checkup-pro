@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1024 体检中心 Pro · 代码 / 打工 / 需求 / 提示词</title>
+<meta property="og:title" content="1024 体检中心 Pro · 来测测你的健康分">
+<meta property="og:description" content="代码 / 打工 / 需求 / 提示词四个模式，出图即晒，自动生成长期榜单。">
+<meta property="og:type" content="website">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #070b12; --panel: #0e1420; --line: #1d2836;
+    --accent: #00ff9d; --accent2: #00d4ff;
+    --text: #d8e3f0; --dim: #6b7d95;
+  }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: "PingFang SC","Microsoft YaHei","WenQuanYi Micro Hei",-apple-system,sans-serif;
+    min-height: 100vh; padding: 24px;
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(0,255,157,.07), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(77,227,255,.06), transparent 40%);
+    transition: background .3s;
+  }
+  .wrap { max-width: 1440px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 22px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px; font-size: 12px;
+    letter-spacing: 2px; color: var(--accent); border: 1px solid rgba(0,255,157,.3);
+    border-radius: 20px; padding: 5px 14px; margin-bottom: 14px; transition: .3s;
+  }
+  .badge i { width:6px;height:6px;background:var(--accent);border-radius:50%;
+             box-shadow:0 0 8px var(--accent); animation: pulse 1.6s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+  h1 { font-size: 32px; font-weight: 800; letter-spacing: 1px; }
+  h1 span { color: var(--accent); transition: .3s; }
+  .sub { color: var(--dim); font-size: 14px; margin-top: 8px; }
+
+  .tabs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+  .tab {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 11px;
+    padding: 11px 18px; font-size: 14px; cursor: pointer; color: var(--dim);
+    font-family: inherit; transition: .2s; display: flex; align-items: center; gap: 7px;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.on { color: var(--accent); border-color: var(--accent); background: rgba(0,255,157,.06); font-weight: 600; }
+  .tab .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .main { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 1080px) { .main { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+  .panel h2 { font-size: 13px; letter-spacing: 1px; color: var(--dim); font-weight: 600;
+              margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+  textarea {
+    width: 100%; height: 300px; resize: vertical; background: #060a11; color: #b9cbe0;
+    border: 1px solid var(--line); border-radius: 10px; padding: 14px; font-size: 13px;
+    line-height: 1.7; font-family: "SF Mono","JetBrains Mono",Consolas,monospace; outline: none;
+  }
+  textarea:focus { border-color: rgba(0,255,157,.45); }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  button {
+    background: #16202e; color: var(--text); border: 1px solid var(--line); border-radius: 9px;
+    padding: 9px 15px; font-size: 13px; cursor: pointer; font-family: inherit; transition: .18s;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button.primary { background: linear-gradient(135deg, var(--accent), var(--accent2));
+                   color: #04121a; font-weight: 700; border: none; flex: 1; min-width: 130px; }
+  button.primary:hover { filter: brightness(1.12); color: #04121a; }
+  .hintline { margin-top: 12px; font-size: 12px; color: var(--dim); line-height: 1.8; }
+  .hintline b { color: var(--accent2); font-weight: 600; }
+
+  /* 打工人体检：滑块表单 */
+  .field { margin-bottom: 14px; }
+  .field label { display: flex; justify-content: space-between; font-size: 13px;
+                 color: var(--text); margin-bottom: 6px; }
+  .field label .v { color: var(--accent); font-weight: 700; }
+  .field input[type=range] { width: 100%; height: 6px; -webkit-appearance: none;
+    background: #1d2836; border-radius: 3px; outline: none; }
+  .field input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px;
+    border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 0 10px rgba(0,255,157,.5); }
+  .field input[type=number] { width: 100%; background: #060a11; color: var(--text);
+    border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; font-size: 14px; font-family: inherit; }
+  .field input[type=number]:focus { outline: none; border-color: var(--accent); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .privacy { margin-top: 14px; padding: 11px 13px; background: rgba(0,255,157,.06);
+             border: 1px solid rgba(0,255,157,.18); border-radius: 10px; font-size: 12px;
+             color: #8ea3bd; line-height: 1.75; }
+  .privacy b { color: var(--accent); }
+
+  .right { display: flex; flex-direction: column; align-items: center; }
+  #poster { width: 100%; max-width: 460px; border-radius: 14px; border: 1px solid var(--line);
+            box-shadow: 0 20px 60px rgba(0,0,0,.6); display: block; }
+  .actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; justify-content: center; }
+  .empty { color: var(--dim); font-size: 13px; text-align: center; padding: 60px 0; line-height: 2; }
+
+  /* 榜单 */
+  .board { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .bitem { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; font-size: 12px; }
+  .bitem .rk { width: 20px; text-align: right; color: var(--dim); }
+  .bitem .nm { width: 74px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+  .bitem .bar { flex: 1; height: 6px; background: #1d2836; border-radius: 3px; overflow: hidden; }
+  .bitem .bar span { display: block; height: 100%; border-radius: 3px; }
+  .bitem .sc { width: 30px; text-align: right; font-weight: 700; }
+  footer { text-align: center; color: #3d4b5e; font-size: 12px; margin-top: 32px; line-height: 1.9; }
+  .toast { position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%) translateY(20px);
+    background: var(--accent); color: #04121a; padding: 10px 22px; border-radius: 24px;
+    font-size: 13px; font-weight: 600; opacity: 0; pointer-events: none; transition: .28s; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* 分享：访问提示条 / 昵称 / 分享按钮 */
+  #viewBanner { display:none; align-items:center; gap:10px; justify-content:center; flex-wrap:wrap;
+    padding:11px 18px; margin-bottom:16px; border-radius:12px; font-size:13px;
+    border:1px solid rgba(0,255,157,.35); background:rgba(0,255,157,.08); color:var(--text); }
+  #viewBanner .who { color:var(--accent); font-weight:700; }
+  #viewBanner button { background:transparent; border:1px solid var(--accent); color:var(--accent);
+    border-radius:8px; padding:5px 12px; font-size:12px; cursor:pointer; font-family:inherit; }
+  #viewBanner button:hover { background:rgba(0,255,157,.15); }
+  .nickfield { display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--dim); }
+  .nickfield input { width:150px; background:#060a11; color:var(--text); border:1px solid var(--line);
+    border-radius:8px; padding:6px 10px; font-size:12px; font-family:inherit; outline:none; }
+  .nickfield input:focus { border-color:var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="badge"><i></i>1024 BUILDER 作品秀 · 纯前端 / 零依赖 / 数据不出浏览器</div>
+    <h1>1024 <span>体检中心</span> Pro</h1>
+    <div class="sub">四个模式，全公司都能玩 · 出图即晒 · 自动生成长期榜单</div>
+  </header>
+
+  <div id="viewBanner">
+    <span>你正在看 <span class="who" id="viewBannerName">匿名</span> 的体检报告</span>
+    <button id="exitShared">点这里测我自己的</button>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="row" id="pasteRow" style="justify-content:center;margin-bottom:16px">
+    <button id="pasteResult">粘贴结果码 / 链接</button>
+  </div>
+
+  <div class="main">
+    <div class="panel" id="inputPanel">
+      <h2><span id="inTitle">① 提交待检样本</span><span id="stat" style="color:#4de3ff"></span></h2>
+
+      <!-- 文本类输入 -->
+      <div id="paneText">
+        <textarea id="code" placeholder="把内容粘进来……"></textarea>
+        <div class="row">
+          <button class="primary" id="run">开始体检</button>
+          <button id="up">上传文件</button>
+          <button id="clr">清空</button>
+        </div>
+        <div class="row" id="demos"></div>
+        <div class="hintline" id="hint"></div>
+      </div>
+
+      <!-- 打工人体检输入 -->
+      <div id="paneWork" style="display:none">
+        <div class="grid2">
+          <div class="field"><label>月薪（元）<span class="v"></span></label>
+            <input type="number" id="salary" value="15000" min="1000" step="500"></div>
+          <div class="field"><label>每月工作天数<span class="v"></span></label>
+            <input type="number" id="wdays" value="21.75" min="15" max="31" step="0.25"></div>
+        </div>
+        <div class="field"><label>今天在岗时长<span class="v" id="v_onsite"></span></label>
+          <input type="range" id="onsite" min="6" max="16" step="0.5" value="9"></div>
+        <div class="field"><label>单程通勤（分钟）<span class="v" id="v_commute"></span></label>
+          <input type="range" id="commute" min="0" max="120" step="5" value="40"></div>
+        <div class="field"><label>会议时长（分钟）<span class="v" id="v_meeting"></span></label>
+          <input type="range" id="meeting" min="0" max="480" step="15" value="120"></div>
+        <div class="field"><label>被打断次数<span class="v" id="v_interrupt"></span></label>
+          <input type="range" id="interrupt" min="0" max="20" step="1" value="5"></div>
+        <div class="field"><label>加班时长（分钟）<span class="v" id="v_overtime"></span></label>
+          <input type="range" id="overtime" min="0" max="300" step="15" value="60"></div>
+        <div class="field"><label>摸鱼 / 恢复（分钟）<span class="v" id="v_rest"></span></label>
+          <input type="range" id="rest" min="0" max="180" step="10" value="45"></div>
+        <div class="field"><label>今天做了什么（选填，一行一条）</label>
+          <textarea id="tasks" style="height:88px" placeholder="写文档沉淀&#10;临时改需求&#10;填表&#10;救火"></textarea></div>
+        <div class="row">
+          <button class="primary" id="runWork">开始体检</button>
+          <button id="wclr">重置</button>
+        </div>
+        <div class="privacy">
+          🔒 <b>涉及薪水的数据只存在你自己的浏览器里</b>，不上传、不联网、不记名。
+          这是给打工人自己算账的工具，不是给老板看的效率监控。
+        </div>
+      </div>
+
+      <input type="file" id="file" multiple hidden accept=".js,.ts,.jsx,.tsx,.py,.java,.go,.c,.cpp,.cs,.php,.rb,.rs,.kt,.vue,.sql,.sh,.txt,.md">
+      <div id="board"></div>
+    </div>
+
+    <div class="panel right">
+      <h2 style="width:100%"><span>② 体检报告</span><span style="color:#3d4b5e">可一键存图</span></h2>
+      <div class="empty" id="ph">左侧填写后<br>这里会生成你的专属体检报告卡</div>
+      <canvas id="poster" style="display:none"></canvas>
+      <div class="actions" id="acts" style="display:none">
+        <button class="primary" id="save" style="flex:none">保存 PNG</button>
+        <button id="copy">复制文案</button>
+        <button id="joinBoard">加入榜单</button>
+      </div>
+      <div class="actions" id="shareBar" style="display:none">
+        <div class="nickfield">昵称 <input id="nick" placeholder="可不填，默认匿名" maxlength="16"></div>
+        <button id="copyResultLink">复制结果链接</button>
+        <button id="copyResultCode">复制结果码</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="boardPanel" style="margin-top:22px;display:none">
+    <h2><span>🏆 长期榜单</span><span style="color:#6b7d95;font-size:12px" id="bcount"></span></h2>
+    <div class="row" style="margin-bottom:14px">
+      <button id="showBoard">生成榜单海报</button>
+      <button id="shareCode">复制我的榜单码</button>
+      <button id="pasteCode">粘贴他人榜单码</button>
+      <button id="clrBoard">清空榜单</button>
+    </div>
+    <div id="boardList"></div>
+    <div class="hintline">
+      榜单存在本地浏览器，<b>每次体检后点「加入榜单」就会自动记录</b>，可长期追踪自己的变化。<br>
+      把「榜单码」或榜单海报发到群里，别人打开链接会自动把你并入他的榜单——<b>不需要服务器也能联机</b>。
+    </div>
+  </div>
+
+  <footer>
+    用 TRAE 从零构建 · 单文件 HTML · 零依赖 · 双击即用<br>
+    1024 快乐，愿你的时间卖出好价钱 🩺
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   1024 体检中心 Pro
+   模式：code 代码 / work 打工 / desc 需求描述 / prompt 提示词
+   统一 result 结构 → 通用海报绘制 → 本地长期榜单
+   ============================================================ */
+
+/* ---------- 模式配置 ---------- */
+const MODES = {
+  code:   { name:"代码体检",  icon:"💻", color:"#00ff9d", accent2:"#00d4ff",
+            title:"① 粘贴待检代码", ph:"把你的代码粘进来……\n\n支持 JS / TS / Python / Java / Go / C++ 等\n也可以直接把文件拖进来",
+            hint:"检测维度：<b>注释率 · 命名质量 · 函数体量 · 嵌套深度 · 重复度 · 代码异味</b><br>全程本地计算，<b>代码不会上传到任何服务器</b>。" },
+  work:   { name:"打工人体检", icon:"🧑‍💻", color:"#ffb800", accent2:"#ff8a3d",
+            title:"① 填写今天的工作账", ph:"", hint:"" },
+  desc:   { name:"需求体检",  icon:"📝", color:"#4de3ff", accent2:"#00d4ff",
+            title:"① 粘贴需求描述", ph:"粘贴一段需求描述 / PRD / commit message / 工作汇报……\n\n例：帮我尽快优化一下这个页面，提升一下用户体验，看着办",
+            hint:"检测维度：<b>清晰度 · 可验证性 · 完整性 · 简洁度 · 一致性 · 可执行性</b><br>核心回答一个问题：<b>这段话交给 AI，它能不能直接干活</b>。" },
+  prompt: { name:"提示词体检", icon:"✨", color:"#a78bfa", accent2:"#c4b5fd",
+            title:"① 粘贴你的提示词", ph:"把你想给 AI 用的那段提示词粘进来……\n\n例：帮我写个好的",
+            hint:"检测维度：<b>角色 · 任务 · 上下文 · 格式 · 约束 · 示例</b><br>体检完直接在报告里拿走<b>优化后的完整提示词</b>。" }
+};
+let mode = "code";
+
+/* ---------- 文案库 ---------- */
+const VERDICT = {
+  code: [
+    {min:90,tag:"S · 洁净典范",color:"#00ff9d",lines:["这段代码干净得像刚拆封的机械键盘，请务必保持。","同事接手你的代码时，会在心里默默说一声谢谢。","建议直接裱起来，作为团队代码规范的范本。"]},
+    {min:75,tag:"A · 优良",color:"#4de3ff",lines:["总体健康，偶有瑕疵，属于可以放心交付的水平。","有点小毛病，但不影响寿命，定期复查即可。","这段代码活得比你工位上的绿萝久。"]},
+    {min:60,tag:"B · 亚健康",color:"#8bd450",lines:["亚健康状态：能跑，但接手的人会叹一口气。","暂时没有生命危险，但请别再往上堆东西了。","『能跑就行』的典范，寿命取决于需求变更频率。"]},
+    {min:40,tag:"C · 预警",color:"#ffb800",lines:["中度屎山，建议隔离观察，接手请佩戴防护装备。","这段代码有自己的想法，改动前建议先烧香。","结构尚可抢救，再迭代两个版本就来不及了。"]},
+    {min:20,tag:"D · 危",color:"#ff8a3d",lines:["确诊重度屎山，原作者大概率已离职或已失忆。","这段代码是靠玄学在运行的，请勿长时间直视。","建议重写；如果不敢，那就装作没看见。"]},
+    {min:0, tag:"E · 危重",color:"#ff4d6d",lines:["传说级屎山。它已经不是代码，是考古现场。","恭喜，你提交的是一份加密文献。","它唯一的价值，是提醒后人不要这样写。"]}
+  ],
+  work: [
+    {min:85,tag:"S · 时间的主人",color:"#00ff9d",lines:["你的时间是你的，这在这个时代已经很奢侈了。","这份工作节奏，值得写进你的续约谈判里。","深度工作时间超过 4 小时，你今天真的在干活而不是在演。"]},
+    {min:70,tag:"A · 基本可控",color:"#4de3ff",lines:["大方向没跑偏，就是会议稍微多了一点点。","你的时间还是你的，偶尔被借走一下。","能保持这个节奏，年底复盘不会太难看。"]},
+    {min:55,tag:"B · 被推着走",color:"#8bd450",lines:["今天的你更像一个响应器，而不是一个创造者。","工作推着你走了一天，你记得自己做了什么吗？","不该这么忙的，但确实这么忙完了。"]},
+    {min:40,tag:"C · 时间黑洞",color:"#ffb800",lines:["你的时间被切成碎片，拼不回一个完整的想法。","今天大部分时间在响应别人，而不是推进自己的事。","会议时长已逼近深度工作时长，这在悄悄改写你的职业轨迹。"]},
+    {min:25,tag:"D · 献给公司的祭品",color:"#ff8a3d",lines:["今天你的时间单价，比你以为的低了一半。","这不是上班，这是献祭。而且没人给你烧纸。","加班时长已经够再上半天班了，恭喜。"]},
+    {min:0, tag:"E · 与工位融为一体",color:"#ff4d6d",lines:["你和你的工位之间，已经分不清谁属于谁。","建议公司给你办张床位，节省通勤成本。","这份工时折算成时薪，可能低于楼下奶茶店的兼职。"]}
+  ],
+  desc: [
+    {min:90,tag:"S · AI 直懂",color:"#00ff9d",lines:["AI 拿到就能干，一句都不用追问。","这段需求清晰到可以直接当验收标准用。","建议把它存成模板，以后照着写。"]},
+    {min:75,tag:"A · 基本可执行",color:"#4de3ff",lines:["大方向清楚，补两个细节就能直接开工。","AI 大概率能一次做对，偶尔需要确认一下。","比大多数需求文档都讲得明白。"]},
+    {min:60,tag:"B · 需追问一轮",color:"#8bd450",lines:["AI 会先反问你三个问题，然后再动手。","能干，但得先对齐一下『尽快』到底是多久。","方向对，标准缺，AI 会自己补一个你未必想要的。"]},
+    {min:40,tag:"C · AI 会自由发挥",color:"#ffb800",lines:["这段描述给了 AI 很大的创作空间，风险很高。","AI 会做出点东西，但大概率不是你要的那个。","『看着办』三个字，是 AI 发挥的许可证。"]},
+    {min:20,tag:"D · 大概率猜错",color:"#ff8a3d",lines:["AI 看完会先沉默三秒，然后开始编。","信息量不足以支撑一个明确的动作。","这不是需求，这是一句感慨。"]},
+    {min:0, tag:"E · AI 看完会沉默",color:"#ff4d6d",lines:["AI 唯一能做的，是回问你『所以呢』。","这段描述的信息熵接近于无。","建议先想清楚你要什么，再来找 AI。"]}
+  ],
+  prompt: [
+    {min:90,tag:"S · 范本级",color:"#00ff9d",lines:["可以直接进团队的提示词库了。","要素齐全，AI 想跑偏都难。","这段提示词的产出会非常稳定。"]},
+    {min:75,tag:"A · 可用",color:"#4de3ff",lines:["结构完整，效果稳定，可以放心用。","再补个示例就能进 S 档。","已经比 90% 的人写得好了。"]},
+    {min:60,tag:"B · 需补约束",color:"#8bd450",lines:["能出活，但每次结果长度和风格可能不一样。","缺了点边界，AI 会偶尔超出你的预期发挥。","补两条『不要做什么』，效果会稳很多。"]},
+    {min:40,tag:"C · AI 会自由发挥",color:"#ffb800",lines:["AI 会按自己的理解来，你对结果的掌控力有限。","要素缺了大半，产出全看 AI 心情。","这段提示词更像一个愿望，而不是一个指令。"]},
+    {min:20,tag:"D · 靠玄学",color:"#ff8a3d",lines:["能不能出好结果，主要看当天 AI 的心情。","你给了 AI 一句话，期待它还你一篇论文。","这段提示词的每次产出都是一次开盲盒。"]},
+    {min:0, tag:"E · 一句话玄学",color:"#ff4d6d",lines:["『帮我写个好的』——AI 也很想知道好的标准是什么。","这段提示词比你早上发的『早』长不了多少。","这不是提示词，这是一声叹息。"]}
+  ]
+};
+const EPITAPH = {
+  code: [
+    {min:75,t:"它安详地跑完了这一生，无憾。"},
+    {min:60,t:"这里躺着一段还能再战三年的代码。"},
+    {min:40,t:"能动就别动，它已经很努力了。"},
+    {min:20,t:"它跑起来了，别问为什么。"},
+    {min:0, t:"它的作者去了远方，留下它独自运行。"}
+  ],
+  work: [
+    {min:85,t:"这一天属于你，而不只是属于公司。"},
+    {min:70,t:"它过得还不错，只是有点累。"},
+    {min:55,t:"这里躺着一天，它本可以更好。"},
+    {min:40,t:"它死于一场本可以用邮件解决的会议。"},
+    {min:25,t:"这一天没有留下任何可以复用的东西。"},
+    {min:0, t:"它跑完了 24 小时，其中大部分不属于自己。"}
+  ],
+  desc: [
+    {min:75,t:"它说清了自己要什么，AI 照做了。"},
+    {min:60,t:"它被追问了一轮，然后才被执行。"},
+    {min:40,t:"它被 AI 自由解读，走完了自己的一生。"},
+    {min:0, t:"它到死都没有说清自己想要什么。"}
+  ],
+  prompt: [
+    {min:75,t:"它把该说的都说了，AI 一次就懂。"},
+    {min:60,t:"它让 AI 猜了几处，好在没猜错。"},
+    {min:40,t:"它给了 AI 一片旷野，AI 自己长出了森林。"},
+    {min:0, t:"它只有一句话，AI 却要还它一个世界。"}
+  ]
+};
+const GOOD_RX = {
+  code: ["保持当前注释密度，别让它在迭代里慢慢衰减。",
+         "这套命名与结构规范，值得沉淀成团队的 Rules / Lint 配置。",
+         "建议把这类文件列为新人 Code Review 的示范样本。"],
+  desc: ["保持这个结构，写需求前先过一遍这五个要素。",
+         "把这段存成模板，团队统一用它提需求。",
+         "验收标准单独成段，方便 AI 和人都对齐。"],
+  prompt: ["保持这个结构，建议直接进团队提示词库。",
+           "再加一个失败案例，效果会更稳。",
+           "可以把它固化成 TRAE 的 Skill 或 Rules 长期复用。"]
+};
+const Rx = {
+  // code
+  comment:"补充关键逻辑注释，注释率建议控制在 10%–20%。",
+  naming:"把 tmp / data / flag 这类命名换成有业务语义的名字。",
+  len:"拆分超长函数，单个函数建议控制在 50 行以内。",
+  nest:"用早返回（guard clause）压平嵌套，别超过 4 层。",
+  dup:"抽取重复逻辑为公共函数，别让 CV 大法留下痕迹。",
+  debug:"清理调试输出，别让 console.log 跟着上线。",
+  todo:"处理掉沉睡的 TODO / FIXME，或者干脆承认它不会发生。",
+  magic:"魔法数字提取为具名常量，让半年后的自己看得懂。",
+  empty:"异常必须处理或向上抛出，禁止静默吞掉错误。",
+  eq:"统一使用严格比较，避免隐式类型转换埋雷。",
+  varx:"用 let / const 替代 var，别再制造变量提升事故。",
+  // desc
+  vague:"把所有模糊词换成具体值：『尽快』→ 写明日期，『一些』→ 写明数量。",
+  verify:"补一条可验证的验收标准，比如『输出 Markdown，不少于 800 字』。",
+  element:"补全缺失要素：谁要、做什么、对什么、什么场景、异常怎么办。",
+  verbose:"删掉车轱辘话，把『进行一个…的操作』改成动词本身。",
+  incon:"统一术语，同一个概念别中英文混用、别简称全称乱跳。",
+  weak:"把『处理一下』换成『提取 / 对比 / 改写 / 列出』这类明确动词。",
+  // prompt
+  role:"补一句身份定义：『你是一位有 10 年经验的 XXX』。",
+  task:"把弱动词换成『生成 / 分析 / 对比 / 提取 / 分类』这类明确动作。",
+  ctx:"补一段背景材料，AI 没有上下文就只能靠猜。",
+  fmt:"指定输出格式和长度，比如『用 Markdown，分 3 点，每点不超过 50 字』。",
+  cons:"补两条边界：不要做什么、超过范围要说明、不确定要标注。",
+  ex:"给一个输入 / 输出示例，这是对齐审美最快的方式。",
+  seg:"用空行或标记分段，别把 200 字糊成一坨。",
+  // work
+  meeting:"把会议压到 90 分钟以内，并给每场会写一个明确结论。",
+  interrupt:"设两个免打扰时段，把打断集中处理而不是随时响应。",
+  commute:"通勤超 60 分钟时，争取每周两天远程，一年能省下不少。",
+  overtime:"加班超过 90 分钟说明排期有问题，该谈的不是态度是资源。",
+  rest:"留够恢复时间，0 分钟的恢复不是高效，是透支。",
+  deep:"每天至少守住一段 90 分钟不被打断的深度工作时间。",
+  asset:"多做能沉淀的事：文档、模板、工具、流程，别让时间全变成一次性消耗。"
+};
+
+/* ---------- 示例代码 ---------- */
+const DEMO = {
+  code: {
+    legacy:`function proc(d,f){
+  var res=[];var tmp=null;var flag=false;
+  for(var i=0;i<d.length;i++){
+    if(d[i]!=null){
+      if(d[i].t==1){
+        if(d[i].v>100){
+          if(f==1){
+            tmp={a:d[i].v,b:d[i].n};
+            flag=true;
+            for(var j=0;j<d[i].c.length;j++){
+              if(d[i].c[j].s==2){
+                if(d[i].c[j].k>8888){
+                  tmp.c=d[i].c[j].k*3.75;
+                  console.log("hit",tmp);
+                }else{ if(d[i].c[j].k>6666){ tmp.c=d[i].c[j].k*2.5; } else { tmp.c=d[i].c[j].k; } }
+              }
+            }
+          }else if(f==2){
+            tmp={a:d[i].v*1.5,b:d[i].n};
+          }else{ tmp={a:d[i].v,b:d[i].n}; }
+        }else{
+          // TODO 这里以后再说
+        }
+      }
+    }
+    if(flag){res.push(tmp);flag=false;}
+  }
+  try{
+    var x=JSON.parse(JSON.stringify(res));
+    return x;
+  }catch(e){
+  }
+  return res;
+}`,
+    normal:`class OrderService {
+  constructor(repo, logger) {
+    this.repo = repo;
+    this.logger = logger;
+  }
+
+  // 计算订单实付金额
+  calcPay(order) {
+    let total = 0;
+    for (const item of order.items) {
+      total += item.price * item.count;
+    }
+    if (order.coupon) {
+      total = total - order.coupon.amount;
+    }
+    if (total < 0) {
+      total = 0;
+    }
+    return Math.round(total * 100) / 100;
+  }
+
+  // 提交订单，失败时抛错由上层处理
+  async submit(order, userId) {
+    if (!order.items || order.items.length === 0) {
+      throw new Error("order items empty");
+    }
+    const pay = this.calcPay(order);
+    const record = await this.repo.create({
+      userId: userId,
+      orderNo: this.genOrderNo(),
+      payAmount: pay,
+      status: 1,
+      createTime: Date.now()
+    });
+    this.logger.info("order created " + record.orderNo);
+    return record;
+  }
+}`,
+    good:`/**
+ * 订单金额计算服务
+ * 规则：优惠后金额不足 0 时按 0 计，结果保留两位小数。
+ */
+const MIN_PAYABLE = 0;
+const CENT = 100;
+
+/** 计算单个订单项的金额小计 */
+function subtotalOf(item) {
+  return item.unitPrice * item.quantity;
+}
+
+/** 计算订单原始总额（未计优惠） */
+function grossAmount(items) {
+  return items.reduce((sum, item) => sum + subtotalOf(item), 0);
+}
+
+/** 计算订单实付金额 */
+export function calculatePayable(order) {
+  const gross = grossAmount(order.items);
+  const discount = order.coupon?.amount ?? 0;
+  const payable = Math.max(gross - discount, MIN_PAYABLE);
+  return Math.round(payable * CENT) / CENT;
+}`
+  },
+  desc: {
+    vague:"帮我尽快优化一下这个页面，提升一下用户体验，看着办。",
+    normal:"把首页的加载速度优化一下，目标是首屏在 2 秒内出来，图片用懒加载，下周三之前完成。",
+    good:"你是前端性能优化专家。请分析首页首屏加载超过 4 秒的原因，输出：1) 三个主要瓶颈及证据；2) 每个瓶颈的修复方案与预估收益；3) 按投入产出比排序的落地顺序。约束：只基于我提供的 Lighthouse 报告，不要臆测；不确定的部分标注『需实测』；输出 Markdown，不超过 800 字。"
+  },
+  prompt: {
+    bad:"帮我写个好的",
+    normal:"帮我写一个产品介绍文案，要吸引人一点",
+    good:"你是一位有 8 年经验的 B 端 SaaS 产品文案。\n任务：为我们的数据分析平台写一段首页主标题 + 副标题。\n上下文：产品面向中小企业老板，核心卖点是『不用写 SQL 也能看数据』，竞品偏技术范。\n输出格式：3 组备选，每组含主标题（不超过 12 字）和副标题（不超过 30 字），Markdown 列表。\n约束：不要用『赋能』『一站式』『助力』这类词；不要出现技术术语；语气克制，不要感叹号。\n示例：主标题『看懂数据，不用求人』／副标题『拖一拖，昨天的生意就摆在你面前』。"
+  }
+};
+
+/* ============================================================
+   分析引擎 1：代码体检
+   ============================================================ */
+const BAD_NAMES = new Set(["a","b","c","d","e","i","j","k","m","n","o","p","q","s","t","u","v","x","y","z",
+  "tmp","temp","data","info","list","obj","item","it","val","value","res","result","flag","foo","bar","baz",
+  "test","aaa","bbb","xxx","str","arr","num","e1","x1","x2","tmp1","tmp2","d1","d2","t1","t2"]);
+
+function detectLang(code) {
+  if (/^\s*(def|class)\s|import\s+\w|self\b|elif/m.test(code)) return "Python";
+  if (/public\s+(static\s+)?(void|class|int|String)|System\.out\.print/m.test(code)) return "Java";
+  if (/package\s+main|func\s+\w+\(|:=/m.test(code)) return "Go";
+  if (/#include|std::|cout\s*<</m.test(code)) return "C / C++";
+  if (/^\s*(import|export)\s|=>|function\s|const\s|let\s|var\s|console\./m.test(code) && /[{};]/.test(code)) {
+    if (/:\s*(string|number|boolean|any)\b|interface\s|type\s+\w+\s*=/m.test(code)) return "TypeScript";
+    if (/<\/[A-Za-z][\w.-]*\s*>|\buseState\b|\buseEffect\b|from\s+['"]react['"]/m.test(code)) return "JSX / TSX";
+    return "JavaScript";
+  }
+  if (/<\?php|\$\w+\s*=/m.test(code)) return "PHP";
+  if (/fn\s+\w+\(|let\s+mut\s/m.test(code)) return "Rust";
+  if (/SELECT\s+.+\s+FROM/im.test(code)) return "SQL";
+  return "未识别语言";
+}
+function stripStrings(line) {
+  return line.replace(/"(?:[^"\\]|\\.)*"/g,'""').replace(/'(?:[^'\\]|\\.)*'/g,"''").replace(/`(?:[^`\\]|\\.)*`/g,"``");
+}
+
+function analyzeCode(src) {
+  const rawLines = src.split(/\r?\n/);
+  let commentLines=0, codeLines=0, longLines=0, maxNest=0, depth=0;
+  const issues=[], flags={debug:0,todo:0,magic:0,empty:0,eq:0,varx:0,evalx:0}, badNameHits=[], dupPool=[];
+
+  rawLines.forEach((raw,idx)=>{
+    const lineNo=idx+1, t=raw.trim();
+    if(!t) return;
+    if(/^(\/\/|#|\/\*|\*|--|<!--)/.test(t)){ commentLines++; return; }
+    codeLines++;
+    const bare=stripStrings(raw);
+    if(raw.length>120) longLines++;
+
+    for(const ch of bare){
+      if(ch==="{"||ch==="["){ depth++; if(depth>maxNest) maxNest=depth; }
+      else if(ch==="}"||ch==="]"){ depth=Math.max(0,depth-1); }
+    }
+    if(/\b(console\.(log|debug|info|warn)|print\s*\(|println|fmt\.Print|System\.out\.print)\b/.test(bare)){
+      flags.debug++; issues.push({pos:"L"+lineNo,type:"debug",text:`残留调试输出：${t.slice(0,40)}`});
+    }
+    if(/\b(TODO|FIXME|HACK|XXX|待实现|临时方案)\b/.test(t)){
+      flags.todo++; issues.push({pos:"L"+lineNo,type:"todo",text:`待办标记已在此处沉睡：${t.slice(0,40)}`});
+    }
+    if(/catch\s*\([^)]*\)\s*\{\s*\}/.test(bare)||/except[^:]*:\s*(pass|#)/.test(bare)){
+      flags.empty++; issues.push({pos:"L"+lineNo,type:"empty",text:"空的异常处理，错误被静默吞掉"});
+    }
+    const isConst=/^\s*(const|final|static\s+final|val|let)\s+[A-Z_][A-Z0-9_]*\s*=/.test(bare);
+    const mm=isConst?null:bare.match(/(?<![\w.$])\d{3,}(?![\w])/g);
+    if(mm){
+      const hit=mm.find(x=>!["1024","1000","2000","3600","100","404","500"].includes(x));
+      if(hit){ flags.magic++; issues.push({pos:"L"+lineNo,type:"magic",text:`疑似魔法数字 ${hit}，建议提取为常量`}); }
+    }
+    if(/\bvar\s+\w+\s*=/.test(bare)){
+      flags.varx++; issues.push({pos:"L"+lineNo,type:"varx",text:"使用 var 声明变量，存在变量提升风险"});
+    }
+    if(/[^=!<>]==[^=]|!=[^=]/.test(bare)){
+      flags.eq++; issues.push({pos:"L"+lineNo,type:"eq",text:"使用了非严格比较，可能触发隐式类型转换"});
+    }
+    const decl=bare.match(/\b(?:var|let|const|def|func|function|int|String|float|double|auto)\s+([A-Za-z_]\w*)/g)||[];
+    decl.forEach(d=>{
+      const name=(d.match(/([A-Za-z_]\w*)\s*$/)||[])[1];
+      if(name&&(BAD_NAMES.has(name)||name.length<=2)) badNameHits.push({line:lineNo,name});
+    });
+    dupPool.push(raw.trim().replace(/\s+/g," "));
+  });
+
+  const pool=dupPool.filter(l=>l.length>12&&/[A-Za-z]/.test(l));
+  const freq={}; pool.forEach(l=>freq[l]=(freq[l]||0)+1);
+  const dupLines=Object.values(freq).reduce((s,c)=>s+(c>1?c:0),0);
+  const dupRatio=pool.length?dupLines/pool.length:0;
+
+  let cur=0,maxBlock=0,blockStart=1,tmpStart=1;
+  rawLines.forEach((raw,idx)=>{
+    const t=raw.trim();
+    if(!t){ if(cur>2&&cur>maxBlock){maxBlock=cur;blockStart=tmpStart;} cur=0; tmpStart=idx+2; return; }
+    if(/^(\/\/|#|\/\*|\*)/.test(t)) return;
+    if(cur===0) tmpStart=idx+1;
+    cur++;
+  });
+  if(cur>maxBlock){maxBlock=cur;blockStart=tmpStart;}
+
+  const commentRate=codeLines?commentLines/(codeLines+commentLines):0;
+  const w={};
+  w.comment = commentRate>=.18?96:commentRate>=.12?85:commentRate>=.07?70:commentRate>=.03?52:commentRate>0?34:12;
+  const badDensity=codeLines?badNameHits.length/codeLines*100:0;
+  w.naming = badDensity===0?96:badDensity<2?78:badDensity<5?60:badDensity<10?40:18;
+  w.len = maxBlock<=25?96:maxBlock<=45?85:maxBlock<=70?68:maxBlock<=110?48:maxBlock<=180?28:12;
+  w.nest = maxNest<=3?96:maxNest===4?80:maxNest===5?62:maxNest===6?44:maxNest<=8?26:10;
+  w.dup = dupRatio<=.02?96:dupRatio<=.06?82:dupRatio<=.12?66:dupRatio<=.22?46:dupRatio<=.35?28:12;
+  const smell=flags.debug+flags.todo+flags.empty+flags.magic+flags.eq+flags.varx+flags.evalx;
+  const smellDensity=codeLines?smell/codeLines*100:0;
+  w.clean = smellDensity===0?96:smellDensity<3?78:smellDensity<7?60:smellDensity<14?40:smellDensity<25?24:10;
+
+  const score=Math.max(0,Math.min(100,Math.round(
+    w.comment*.16+w.naming*.22+w.len*.18+w.nest*.18+w.dup*.12+w.clean*.14)));
+
+  const seen=new Set(), top=[];
+  if(maxBlock>45) top.push({pos:"L"+blockStart,type:"len",text:`连续 ${maxBlock} 行的超长逻辑块，建议拆分`});
+  if(maxNest>=5) top.push({pos:"全局",type:"nest",text:`嵌套深度达 ${maxNest} 层，建议用早返回压平`});
+  if(badNameHits.length) top.push({pos:"L"+badNameHits[0].line,type:"naming",text:`命名「${badNameHits[0].name}」缺乏业务语义（共 ${badNameHits.length} 处）`});
+  if(dupRatio>.08) top.push({pos:"全局",type:"dup",text:`重复代码占比约 ${Math.round(dupRatio*100)}%，建议抽取公共函数`});
+  for(const it of issues){ if(top.length>=5) break; if(seen.has(it.type)) continue; seen.add(it.type); top.push(it); }
+  if(commentRate<.05) top.push({pos:"全局",type:"comment",text:`注释率仅 ${Math.round(commentRate*100)}%，关键逻辑缺少说明`});
+
+  const rxSet=[];
+  const add=k=>{ if(!rxSet.includes(k)&&rxSet.length<4) rxSet.push(k); };
+  if(w.comment<70) add("comment");
+  if(w.naming<70) add("naming");
+  if(w.len<70) add("len");
+  if(w.nest<70) add("nest");
+  if(w.dup<70) add("dup");
+  if(w.clean<70) ["debug","todo","magic","empty","varx","eq"].forEach(k=>{ if(flags[k]) add(k); });
+
+  return buildResult("code",score,{
+    radar:[["注释",w.comment],["命名",w.naming],["体量",w.len],["嵌套",w.nest],["去重",w.dup],["整洁",w.clean]],
+    metrics:[["总行数",rawLines.length+" 行"],["有效代码",codeLines+" 行"],["注释率",Math.round(commentRate*100)+"%"],
+             ["最长逻辑块",maxBlock+" 行"],["最大嵌套",maxNest+" 层"],["重复率",Math.round(dupRatio*100)+"%"],["异味计数",smell+" 处"]],
+    issues:top.slice(0,5), rxKeys:rxSet, lang:detectLang(src)
+  });
+}
+
+/* ============================================================
+   分析引擎 2：打工人体检（全员向，极简滑块）
+   ============================================================ */
+function fmt(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
+
+const VAGUE_WORDS = ["尽快","适当","尽量","差不多","一些","优化一下","提升一下","改善","看着办","合理",
+  "必要时","等相关","等等","稍微","大致","搞一下","弄一下","处理一下","研究一下","看看","最好","如果可以","相关"];
+const STRONG_VERB = ["生成","分析","对比","改写","翻译","提取","分类","排序","校验","总结","列出","计算","整理","设计","评估","输出","识别","拆解","归纳","重写","提取"];
+const WEAK_VERB = ["处理","弄","搞","看看","研究","想想","关注","帮忙","帮","弄一下","处理一下","优化","提升","改善"];
+const ASSET_WORDS = ["沉淀","文档","模板","工具","流程","规范","复盘","总结","方法论","组件","库","培训","sop","体系","沉淀为","梳理","建设","搭建","设计","规划"];
+const CONSUME_WORDS = ["临时","救火","填表","对接","跟进","催","协调","返工","改需求","临时需求","重复","搬运","统计","汇报","开会","对齐","同步"];
+
+function analyzeWork(inp) {
+  const salary=+inp.salary||15000, wdays=+inp.wdays||21.75;
+  const onsite=+inp.onsite||9;              // 小时（含午休）
+  const commute=+inp.commute||0;            // 单程分钟
+  const meeting=+inp.meeting||0;            // 分钟
+  const interrupt=+inp.interrupt||0;        // 次
+  const overtime=+inp.overtime||0;          // 分钟
+  const rest=+inp.rest||0;                  // 摸鱼恢复分钟
+  const MEAL=60, INTERRUPT_COST=15;         // 午休默认60分钟，每次被打断损耗15分钟
+
+  const daySalary = salary / wdays;
+  const nominalHourly = salary / (wdays * 8);                    // 名义时薪（按8小时）
+  const soldMinutes = onsite*60 - MEAL + overtime + commute*2;   // 实际卖给公司的分钟
+  const soldHours = Math.max(1, soldMinutes/60);
+  const realHourly = daySalary / soldHours;                      // 真实时薪
+  const shrink = Math.max(0, Math.round((1 - realHourly/nominalHourly)*100)); // 缩水率
+
+  // 六维
+  const workMinutes = Math.max(1, onsite*60 - MEAL);
+  const focusMinutes = Math.max(0, workMinutes - meeting - interrupt*INTERRUPT_COST);
+  const deepRatio = focusMinutes / workMinutes;
+  const w = {};
+  w.deep = deepRatio>=.6?96:deepRatio>=.45?82:deepRatio>=.32?65:deepRatio>=.2?45:deepRatio>=.1?28:12;
+  const mRatio = meeting/workMinutes;
+  w.meeting = mRatio<=.1?96:mRatio<=.2?82:mRatio<=.32?64:mRatio<=.45?45:mRatio<=.6?28:12;
+  w.focus = interrupt===0?96:interrupt<=2?78:interrupt<=5?55:interrupt<=9?35:interrupt<=14?20:10;
+  w.commute = commute<=30?96:commute<=45?85:commute<=60?72:commute<=90?55:commute<=120?36:18;
+  w.rest = rest===0?30:rest<30?62:rest<=90?96:rest<=140?78:rest<=180?55:30;
+  w.overtime = overtime===0?96:overtime<=30?85:overtime<=60?70:overtime<=120?48:overtime<=180?30:14;
+
+  const score = Math.max(0,Math.min(100,Math.round(
+    w.deep*.24 + w.meeting*.18 + w.focus*.18 + w.commute*.14 + w.rest*.10 + w.overtime*.16)));
+
+  // 时间账单
+  const meetingCost = Math.round(meeting/60 * realHourly);
+  const commuteYear = Math.round(commute*2/60 * realHourly * wdays * 12);
+  const overtimeGift = Math.round(overtime/60 * realHourly);
+
+  // 事项资产率（选填）
+  let assetRate=null, assetList=[];
+  const tasks=(inp.tasks||"").split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  if(tasks.length){
+    let asset=0;
+    tasks.forEach(t=>{
+      const isAsset=ASSET_WORDS.some(k=>t.includes(k));
+      const isConsume=CONSUME_WORDS.some(k=>t.includes(k));
+      if(isAsset&&!isConsume) { asset++; assetList.push({t,a:true}); }
+      else assetList.push({t,a:false});
+    });
+    assetRate=Math.round(asset/tasks.length*100);
+    // 资产率影响分数（±8）
+  }
+
+  // 病灶
+  const issues=[];
+  if(meeting>=150) issues.push({pos:"会议",type:"meeting",text:`今天开了 ${meeting} 分钟会，烧掉约 ¥${fmt(meetingCost)}，产出未记录`});
+  else if(meeting>=90) issues.push({pos:"会议",type:"meeting",text:`会议 ${meeting} 分钟，已占据有效工作时间的 ${Math.round(mRatio*100)}%`});
+  if(interrupt>=6) issues.push({pos:"打断",type:"interrupt",text:`被打断 ${interrupt} 次，按每次损耗 15 分钟算，蒸发 ${interrupt*INTERRUPT_COST} 分钟`});
+  if(commute>=60) issues.push({pos:"通勤",type:"commute",text:`单程 ${commute} 分钟，一年在路上烧掉约 ¥${fmt(commuteYear)}`});
+  if(overtime>=90) issues.push({pos:"加班",type:"overtime",text:`加班 ${overtime} 分钟，按真实时薪算相当于白送 ¥${fmt(overtimeGift)}`});
+  if(rest===0) issues.push({pos:"恢复",type:"rest",text:"整天零恢复时间，这不是高效，是透支"});
+  if(deepRatio<.2) issues.push({pos:"深度",type:"deep",text:`深度工作仅 ${Math.round(focusMinutes)} 分钟，占有效工时 ${Math.round(deepRatio*100)}%`});
+  if(assetRate!==null&&assetRate<40) issues.push({pos:"事项",type:"asset",text:`今日资产率仅 ${assetRate}%，大部分时间变成了无法复用的一次性消耗`});
+
+  const rxSet=[];
+  const add=k=>{ if(!rxSet.includes(k)&&rxSet.length<4) rxSet.push(k); };
+  if(w.meeting<70) add("meeting");
+  if(w.focus<70) add("interrupt");
+  if(w.commute<70) add("commute");
+  if(w.overtime<70) add("overtime");
+  if(w.rest<70) add("rest");
+  if(w.deep<70) add("deep");
+  if(assetRate!==null&&assetRate<50) add("asset");
+  if(!rxSet.length) rxSet.push("deep");
+
+  return buildResult("work",score,{
+    radar:[["深度工作",w.deep],["会议负担",w.meeting],["抗干扰",w.focus],["通勤成本",w.commute],["恢复空间",w.rest],["加班可控",w.overtime]],
+    metrics:[["名义时薪","¥"+nominalHourly.toFixed(1)],["真实时薪","¥"+realHourly.toFixed(1)],
+             ["时薪缩水",shrink+"%"],["今日出售",soldHours.toFixed(1)+" 小时"],
+             ["深度工作",Math.round(focusMinutes)+" 分钟"],["会议",meeting+" 分钟"]]
+      .concat(assetRate!==null?[["今日资产率",assetRate+"%"]]:[]),
+    issues:issues.slice(0,5), rxKeys:rxSet,
+    hero:{type:"wage", realHourly, nominalHourly, shrink, meetingCost, commuteYear, overtimeGift},
+    bonus:assetRate!==null?{title:"今日事项",lines:assetList.slice(0,4).map(x=>(x.a?"◆ 资产型 ":"◇ 消耗型 ")+x.t)}:null
+  });
+}
+
+/* ============================================================
+   分析引擎 3：需求描述体检
+   ============================================================ */
+function analyzeDesc(text) {
+  const t=text.trim();
+  const chars=t.length, sents=t.split(/[。！？；\n]+/).filter(s=>s.trim()).length;
+
+  const vagueHits=VAGUE_WORDS.filter(k=>t.includes(k));
+  const w_clarity = Math.max(10, 96 - vagueHits.length*12);
+
+  const quant=t.match(/\d+\s*(字|条|个|秒|毫秒|ms|s|%|百分比|分|分钟|小时|天|次|行|版|轮)/g)||[];
+  const bareNum=(t.match(/\d+/g)||[]).length;
+  const w_verify = quant.length>=2?96:quant.length===1?75:bareNum>0?50:20;
+
+  const hasSubject=/(我|我们|你|您|团队|客户|产品|业务|部门|用户|老板|同事|对方)/.test(t);
+  const hasAction=STRONG_VERB.some(v=>t.includes(v))||WEAK_VERB.some(v=>t.includes(v));
+  const hasObject=/(这个|该|此|页面|首页|接口|数据|文档|系统|流程|功能|模块|报告|文案|代码|端|平台|速度|性能|内容|列表|表单|图片|方案|表格)/.test(t);
+  const hasCond=/(如果|当|在|前提|场景|情况|遇到|基于|针对|之前|以内|超过)/.test(t);
+  const hasBound=/(不要|禁止|避免|必须|只能|不超过|少于|超过|异常|失败|边界|限制)/.test(t);
+  const elems=[hasSubject,hasAction,hasObject,hasCond,hasBound].filter(Boolean).length;
+  const w_complete = elems===5?96:elems===4?78:elems===3?58:elems===2?38:15;
+
+  const sentList=t.split(/[。！？；\n]+/).map(s=>s.trim()).filter(Boolean);
+  const dupSent=sentList.length-new Set(sentList).size;
+  const redVerb=(t.match(/进行一个|做一个|的处理|的操作|相关的|非常的|特别的|相当的/g)||[]).length;
+  // 短 ≠ 简洁：又短又模糊只是含糊，不是精炼
+  let w_concise = (dupSent+redVerb)===0?96:(dupSent+redVerb)<=1?76:(dupSent+redVerb)<=3?55:30;
+  if(chars<28 && vagueHits.length) w_concise=Math.min(w_concise,45);
+
+  const zhEn=(t.match(/[A-Za-z]{3,}/g)||[]).length>0 && /[\u4e00-\u9fa5]{4,}/.test(t);
+  const w_consist = zhEn?72:96;
+
+  const strongCount=STRONG_VERB.filter(v=>t.includes(v)).length;
+  const weakCount=WEAK_VERB.filter(v=>t.includes(v)).length;
+  const w_action = strongCount>=2?96:strongCount===1?78:weakCount>0?42:15;
+
+  const score=Math.max(0,Math.min(100,Math.round(
+    w_clarity*.22+w_verify*.20+w_complete*.18+w_concise*.14+w_consist*.12+w_action*.14)));
+
+  const issues=[];
+  vagueHits.slice(0,2).forEach(k=>issues.push({pos:"模糊词",type:"vague",text:`出现「${k}」——AI 无法判断具体值，请换成可度量的描述`}));
+  if(quant.length===0) issues.push({pos:"验收",type:"verify",text:"全文没有量化验收标准，AI 无法自证完成"});
+  const miss=[];
+  if(!hasSubject) miss.push("主体"); if(!hasAction) miss.push("动作");
+  if(!hasObject) miss.push("对象"); if(!hasCond) miss.push("条件"); if(!hasBound) miss.push("边界");
+  if(miss.length) issues.push({pos:"要素",type:"element",text:`缺少 ${miss.slice(0,3).join("、")}，AI 遇到这些情况只能自己编`});
+  if(dupSent>0) issues.push({pos:"冗余",type:"verbose",text:`有 ${dupSent} 处重复句式，删掉不影响意思`});
+  if(strongCount===0&&weakCount>0) issues.push({pos:"动词",type:"weak",text:"任务动词太弱，AI 得先猜你想干嘛"});
+
+  const rxSet=[];
+  const add=k=>{ if(!rxSet.includes(k)&&rxSet.length<4) rxSet.push(k); };
+  if(vagueHits.length) add("vague");
+  if(quant.length<2) add("verify");
+  if(miss.length) add("element");
+  if((dupSent+redVerb)>0) add("verbose");
+  if(zhEn) add("incon");
+  if(strongCount===0) add("weak");
+
+  // 彩蛋：AI 友好版改写
+  let rewrite=t;
+  vagueHits.forEach(k=>{
+    const map={"尽快":"本周五 18:00 前","适当":"按需（控制在 3 条内）","尽量":"优先","差不多":"误差不超过 5%",
+      "一些":"3 条","优化一下":"优化","提升一下":"提升","改善":"改善","看着办":"按以下标准执行","合理":"符合以下标准",
+      "必要时":"当出现 X 情况时","等相关":"等（共 N 项）","等等":"等（共 N 项）","稍微":"微调（幅度不超过 10%）",
+      "大致":"约","搞一下":"完成","弄一下":"完成","处理一下":"处理","研究一下":"调研","看看":"检查","最好":"需","如果可以":"请"};
+    rewrite=rewrite.split(k).join(map[k]||k);
+  });
+  if(quant.length===0) rewrite += "。验收标准：输出 Markdown，不少于 800 字，结构清晰可分点。";
+  if(!hasBound) rewrite += "。约束：不确定的部分明确标注，超出范围请直接指出，不要臆测。";
+  if(strongCount===0) rewrite = rewrite.replace(/^(帮我|请)?/,"请");
+
+  return buildResult("desc",score,{
+    radar:[["清晰度",w_clarity],["可验证性",w_verify],["完整性",w_complete],["简洁度",w_concise],["一致性",w_consist],["可执行性",w_action]],
+    metrics:[["字符数",chars+" 字"],["句数",sents+" 句"],["模糊词",vagueHits.length+" 处"],
+             ["量化标准",quant.length+" 处"],["要素齐全",elems+"/5"],["强动词",strongCount+" 个"]],
+    issues:issues.slice(0,5), rxKeys:rxSet,
+    bonus:{title:"AI 友好版改写（可直接复制）",lines:[rewrite.slice(0,180)+(rewrite.length>180?"…":"")]}
+  });
+}
+
+/* ============================================================
+   分析引擎 4：提示词体检
+   ============================================================ */
+function analyzePrompt(text) {
+  const t=text.trim();
+  const chars=t.length;
+  const lines=t.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  const segmented=lines.length>1 || /^[\-\*\d．#]|\||```/.test(t);
+
+  const roleMatch=t.match(/(你是|作为一位|作为|扮演|你是一位|act as|you are|你的身份)/i);
+  const roleDetail=/(年经验|专家|资深|高级|工程师|产品经理|设计师|分析师|老师|顾问)/.test(t);
+  const w_role = roleMatch&&roleDetail?96:roleMatch?62:18;
+
+  const strongCount=STRONG_VERB.filter(v=>t.includes(v)).length;
+  const weakCount=WEAK_VERB.filter(v=>t.includes(v)).length;
+  const hasDeliverable=/(文案|报告|文档|方案|代码|页面|表格|列表|总结|分析|标题|内容|脚本|工具|邮件|简历|计划|介绍|说明)/.test(t);
+  const w_task = strongCount>=2?96:strongCount===1?78:(weakCount>0&&hasDeliverable)?58:(weakCount>0)?42:12;
+
+  const ctxLen=chars;
+  const hasObj=/(以下|下面|这段|这份|该|此|材料|数据|内容|原文|输入)/.test(t);
+  const w_ctx = ctxLen>80&&hasObj?96:ctxLen>50?78:hasObj?60:hasDeliverable?42:20;
+
+  const fmtMarks=["markdown","json","表格","列表","分点","字数","条","结构化","要点","标题","yaml","csv","代码块"]
+    .filter(k=>t.toLowerCase().includes(k));
+  const lenSpec=/\d+\s*(字|条|个|行|段|点)/.test(t);
+  const w_fmt = fmtMarks.length&&lenSpec?96:fmtMarks.length?72:20;
+
+  const consMarks=["不要","禁止","避免","必须","只能","不超过","少于","不要出现","不准","仅限","约束","限制"]
+    .filter(k=>t.includes(k));
+  const w_cons = consMarks.length>=2?96:consMarks.length===1?74:25;
+
+  const hasExIO=/示例|例如|比如|样例|输入\s*[:：]|输出\s*[:：]|eg\.|example/i.test(t);
+  const hasPair=/输入\s*[:：][\s\S]{3,}[\s\S]*输出\s*[:：]|输出\s*[:：][\s\S]{3,}[\s\S]*输入\s*[:：]/.test(t);
+  const w_ex = hasPair?96:hasExIO?70:22;
+
+  let score=Math.max(0,Math.min(100,Math.round(
+    w_role*.16+w_task*.22+w_ctx*.18+w_fmt*.16+w_cons*.14+w_ex*.14)));
+  if(!segmented&&chars>200) score=Math.max(0,score-5);
+
+  const issues=[];
+  if(!roleMatch) issues.push({pos:"角色",type:"role",text:"你没告诉 AI 它是谁，它会用最平庸的人格回答你"});
+  else if(!roleDetail) issues.push({pos:"角色",type:"role",text:"身份太笼统（如『你是一个助手』），加上领域和年限效果差别很大"});
+  if(strongCount===0) issues.push({pos:"任务",type:"task",text:`任务动词是「${WEAK_VERB.find(v=>t.includes(v))||"含糊的表述"}」，AI 得先猜你想干嘛`});
+  if(!hasObj&&ctxLen<=50) issues.push({pos:"上下文",type:"ctx",text:"没有提供背景材料，AI 只能靠想象补齐信息"});
+  if(!fmtMarks.length) issues.push({pos:"格式",type:"fmt",text:"没指定输出格式，AI 会还你一篇想怎么写就怎么写的大作文"});
+  if(!consMarks.length) issues.push({pos:"约束",type:"cons",text:"没有边界和禁止项，AI 会自信地超出你的预期发挥"});
+  if(!hasExIO) issues.push({pos:"示例",type:"ex",text:"没给示例，AI 只能靠猜对齐你的审美，通常对不齐"});
+  if(!segmented&&chars>200) issues.push({pos:"结构",type:"seg",text:"一整段糊在一起，AI 容易抓不住重点，建议用空行或标记分段"});
+  if(chars<15) issues.push({pos:"长度",type:"task",text:"这段提示词比你早上发的『早』长不了多少"});
+
+  const rxSet=[];
+  const add=k=>{ if(!rxSet.includes(k)&&rxSet.length<4) rxSet.push(k); };
+  if(w_role<70) add("role");
+  if(w_task<70) add("task");
+  if(w_ctx<70) add("ctx");
+  if(w_fmt<70) add("fmt");
+  if(w_cons<70) add("cons");
+  if(w_ex<70) add("ex");
+  if(!segmented&&chars>200) add("seg");
+
+  // 彩蛋：优化后的提示词（模板补全，不覆盖用户已有内容）
+  const parts=[];
+  const roleLine = roleMatch ? (t.match(/(你是[^。\n]*|作为[^。\n]*|扮演[^。\n]*)/i)||[""])[0]
+                             : "你是一位资深领域专家（按任务推断）";
+  parts.push("[角色] " + roleLine);
+  let taskLine=(t.match(/[^。\n]*(生成|分析|对比|改写|翻译|提取|分类|排序|校验|总结|列出|计算|整理|设计|评估|输出|识别|拆解|重写)[^。\n]*/)||[t.slice(0,60)])[0];
+  ["帮我","请","处理一下","弄一下","搞一下"].forEach(w=>{ if(taskLine.startsWith(w)) taskLine=taskLine.slice(w.length); });
+  parts.push("[任务] " + (taskLine.trim()||t.slice(0,60)));
+  const ctxLine=(t.match(/(以下|下面|这段|这份)[^。\n]*/)||[])[0];
+  parts.push("[上下文] " + (ctxLine||"（建议补充一段背景材料或粘贴原文）"));
+  if(!fmtMarks.length){
+    let dft="Markdown，分点说明";
+    if(/对比|比较|区别|差异/.test(t)) dft="Markdown 表格，逐项对比";
+    if(/生成|写|创作/.test(t)) dft="Markdown，带小标题，结构清晰";
+    parts.push("[输出格式] " + dft + "（你未指定，已按任务类型推荐）");
+  } else parts.push("[输出格式] " + (t.match(/[^。\n]*(markdown|json|表格|列表|分点|字数|条)[^。\n]*/i)||["见原文"])[0]);
+  parts.push("[约束] " + (consMarks.length?consMarks.slice(0,2).join("、")+"；":"") + "不确定的部分要说明；超出范围要直接指出");
+  parts.push("[示例] " + (hasExIO?"见你提供的示例":"（建议补一个输入 / 输出示例）"));
+
+  return buildResult("prompt",score,{
+    radar:[["角色",w_role],["任务",w_task],["上下文",w_ctx],["格式",w_fmt],["约束",w_cons],["示例",w_ex]],
+    metrics:[["字符数",chars+" 字"],["分段",segmented?"是":"否"],["强动词",strongCount+" 个"],
+             ["格式指定",fmtMarks.length?"有":"无"],["约束条数",consMarks.length+" 条"],["示例",hasPair?"完整":hasExIO?"单向":"无"]],
+    issues:issues.slice(0,5), rxKeys:rxSet,
+    bonus:{title:"优化后的提示词（可直接复制）",lines:parts.slice(0,5)}
+  });
+}
+
+/* ============================================================
+   统一结果构造
+   ============================================================ */
+function buildResult(m,score,d){
+  const v=VERDICT[m].find(x=>score>=x.min);
+  const epi=EPITAPH[m].find(x=>score>=x.min);
+  let rx;
+  if(score>=85 && GOOD_RX[m]) rx=GOOD_RX[m].slice();
+  else rx=(d.rxKeys||[]).map(k=>Rx[k]||k).filter(Boolean);
+  if(!rx.length) rx=[Rx["deep"]];
+  return {
+    mode:m, score, tag:v.tag, color:v.color,
+    verdict:v.lines[Math.floor(Math.random()*v.lines.length)],
+    epitaph:epi.t, radar:d.radar, metrics:d.metrics,
+    issues:d.issues||[], rx, hero:d.hero||null, bonus:d.bonus||null, lang:d.lang||null, ts:Date.now()
+  };
+}
+
+/* ============================================================
+   海报绘制（通用）
+   ============================================================ */
+const W=900; let H=1300;
+const cv=document.getElementById("poster");
+const ctx=cv.getContext("2d");
+
+// 精确推算画布高度：先算内容真实高度，再决定画布，避免溢出与大片空白
+function layout(r){
+  const n = r.metrics.length;
+  let y = r.hero ? 470 : 460;                                  // header + hero 区
+  y += Math.max(234, 30*(n+1) + 20);                           // 雷达区 / 指标区（取较高者）
+  y += 26 + 34 + (r.issues.length ? Math.min(r.issues.length,5)*54 : 30);  // 病灶标题 + 条目
+  y += 10 + 24 + 34 + r.rx.length*34;                          // 处方标题 + 条目
+  if (r.bonus) y += 16 + 40 + r.bonus.lines.length*30;         // 彩蛋区
+  const contentH = y;
+  const H = Math.round(Math.max(contentH, 900) + 162);         // 162 = 墓志铭 + 页脚
+  return { H, slack: Math.max(0, (H - 162) - contentH) };
+}
+let SLACK = 0;
+function font(s,w){ return `${w||400} ${s}px "PingFang SC","Microsoft YaHei","WenQuanYi Micro Hei",-apple-system,sans-serif`; }
+function txt(s,x,y,size,color,weight,align){
+  ctx.font=font(size,weight); ctx.fillStyle=color;
+  ctx.textAlign=align||"left"; ctx.textBaseline="alphabetic"; ctx.fillText(s,x,y);
+}
+function wrap(s,x,y,maxW,size,color,lh,weight){
+  ctx.font=font(size,weight); ctx.fillStyle=color; ctx.textAlign="left";
+  let line="", yy=y;
+  for(const ch of s){
+    if(ctx.measureText(line+ch).width>maxW && line){ ctx.fillText(line,x,yy); yy+=lh; line=ch; }
+    else line+=ch;
+  }
+  if(line){ ctx.fillText(line,x,yy); yy+=lh; }
+  return yy;
+}
+function roundRect(x,y,w,h,r){
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+
+function bgAndFrame(color){
+  const g=ctx.createLinearGradient(0,0,W,H);
+  g.addColorStop(0,"#080d16"); g.addColorStop(.5,"#0c1420"); g.addColorStop(1,"#070b12");
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle="rgba(255,255,255,.028)"; ctx.lineWidth=1;
+  for(let x=0;x<W;x+=30){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for(let y=0;y<H;y+=30){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  const gl=ctx.createRadialGradient(140,200,0,140,200,420);
+  gl.addColorStop(0,color+"22"); gl.addColorStop(1,"transparent");
+  ctx.fillStyle=gl; ctx.fillRect(0,0,900,620);
+  ctx.strokeStyle="rgba(255,255,255,.10)"; ctx.lineWidth=2;
+  roundRect(20,20,W-40,H-40,20); ctx.stroke();
+}
+function drawHeader(r,subRight){
+  const no="No.1024-"+String(Math.floor(Math.random()*9000)+1000);
+  const dt=new Date();
+  const ds=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;
+  ctx.fillStyle=r.color; ctx.fillRect(52,56,26,8); ctx.fillRect(61,47,8,26);
+  txt("1024 CHECKUP REPORT",92,66,15,"#61789a",600);
+  txt(MODES[r.mode].name,52,108,34,"#ffffff",800);
+  txt(no,W-52,62,15,"#61789a",600,"right");
+  txt(ds,W-52,88,15,"#61789a",400,"right");
+  txt(subRight||"",W-52,114,15,r.color,600,"right");
+  ctx.strokeStyle="rgba(255,255,255,.10)"; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(52,132); ctx.lineTo(W-52,132); ctx.stroke();
+}
+function drawScoreRing(cx,cy,R,score,color,label){
+  ctx.lineWidth=14; ctx.lineCap="round";
+  ctx.strokeStyle="rgba(255,255,255,.07)";
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.stroke();
+  ctx.strokeStyle=color; ctx.shadowColor=color; ctx.shadowBlur=20;
+  ctx.beginPath(); ctx.arc(cx,cy,R,-Math.PI/2,-Math.PI/2+Math.PI*2*score/100); ctx.stroke();
+  ctx.shadowBlur=0;
+  txt(String(score),cx,cy+12,52,"#ffffff",800,"center");
+  txt(label||"健康分",cx,cy+42,14,"#7d8fa8",400,"center");
+}
+function drawRadar(cx,cy,RR,dims,color,title){
+  const n=dims.length;
+  ctx.strokeStyle="rgba(255,255,255,.09)"; ctx.lineWidth=1;
+  for(let k=1;k<=4;k++){
+    ctx.beginPath();
+    for(let i=0;i<n;i++){
+      const a=-Math.PI/2+i*Math.PI*2/n, rr=RR*k/4;
+      const px=cx+Math.cos(a)*rr, py=cy+Math.sin(a)*rr;
+      i?ctx.lineTo(px,py):ctx.moveTo(px,py);
+    }
+    ctx.closePath(); ctx.stroke();
+  }
+  for(let i=0;i<n;i++){
+    const a=-Math.PI/2+i*Math.PI*2/n;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(a)*RR,cy+Math.sin(a)*RR); ctx.stroke();
+  }
+  ctx.beginPath();
+  dims.forEach((d,i)=>{
+    const a=-Math.PI/2+i*Math.PI*2/n, rr=RR*Math.max(.08,d[1]/100);
+    const px=cx+Math.cos(a)*rr, py=cy+Math.sin(a)*rr;
+    i?ctx.lineTo(px,py):ctx.moveTo(px,py);
+  });
+  ctx.closePath(); ctx.fillStyle=color+"33"; ctx.fill();
+  ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.stroke();
+  dims.forEach((d,i)=>{
+    const a=-Math.PI/2+i*Math.PI*2/n, rr=RR*Math.max(.08,d[1]/100);
+    ctx.beginPath(); ctx.arc(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr,4,0,Math.PI*2);
+    ctx.fillStyle=color; ctx.fill();
+    const la=-Math.PI/2+i*Math.PI*2/n;
+    txt(d[0],cx+Math.cos(la)*(RR+24),cy+Math.sin(la)*(RR+24)+5,13,"#8ea3bd",500,"center");
+  });
+  if(title) txt(title,cx,cy+RR+52,14,"#4b5c73",400,"center");
+}
+function drawIssues(r,y){
+  ctx.fillStyle="#ff4d6d"; ctx.fillRect(52,y-14,4,18);
+  txt("主要病灶",66,y,21,"#ffffff",800); y+=34;
+  if(!r.issues.length){ return wrap("未发现明显病灶，这份样本相当健康。",66,y,W-120,17,"#8ea3bd",26,400); }
+  r.issues.slice(0,5).forEach(it=>{
+    ctx.fillStyle="rgba(255,77,109,.09)";
+    roundRect(66,y-2,W-132,46,9); ctx.fill();
+    ctx.fillStyle="rgba(255,77,109,.85)";
+    roundRect(76,y+8,52,22,6); ctx.fill();
+    txt(String(it.pos||"全局").slice(0,5),102,y+24,12,"#ffd9e0",700,"center");
+    wrap(it.text,140,y+24,W-230,16,"#e2e9f2",21,400);
+    y+=54;
+  });
+  return y;
+}
+function drawRx(r,y){
+  y = y + 24 + SLACK/2;                        // 剩余空白在处方区上方均分，避免堆在底部
+  ctx.fillStyle=r.color; ctx.fillRect(52,y-14,4,18);
+  txt("处方建议",66,y,21,"#ffffff",800); y+=34;
+  r.rx.forEach((s,i)=>{
+    txt(String(i+1).padStart(2,"0"),70,y+18,15,r.color,700);
+    y=wrap(s,106,y+18,W-172,16,"#c8d6e6",21,400)+10;
+  });
+  return y;
+}
+function drawBonus(r,y){
+  if(!r.bonus) return y;
+  y+=10;
+  ctx.fillStyle="rgba(255,255,255,.035)";
+  const h=48+r.bonus.lines.length*30;
+  roundRect(52,y,W-104,h,14); ctx.fill();
+  ctx.strokeStyle="rgba(255,255,255,.07)"; ctx.lineWidth=1;
+  roundRect(52,y,W-104,h,14); ctx.stroke();
+  txt(r.bonus.title,78,y+30,14,r.color,600);
+  let yy=y+58;
+  r.bonus.lines.forEach(l=>{ yy=wrap(l,78,yy,W-160,15,"#b9cbe0",26,400)+4; });
+  return y+h+16;
+}
+function drawEpitaph(r){
+  const y=H-162;
+  ctx.fillStyle="rgba(255,255,255,.035)";
+  roundRect(52,y,W-104,92,14); ctx.fill();
+  ctx.strokeStyle="rgba(255,255,255,.07)"; ctx.lineWidth=1;
+  roundRect(52,y,W-104,92,14); ctx.stroke();
+  txt("墓志铭",78,y+34,14,"#4b5c73",400);
+  wrap("「"+r.epitaph+"」",78,y+68,W-160,20,r.color,27,600);
+}
+
+function drawReport(r){
+  const lay=layout(r);
+  H=lay.H; SLACK=lay.slack;
+  const dpr=2;
+  cv.width=W*dpr; cv.height=H*dpr;
+  cv.style.width="100%"; cv.style.height="auto";
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+
+  bgAndFrame(r.color);
+  drawHeader(r, r.lang || ({code:"代码",work:"工时",desc:"需求",prompt:"提示词"}[r.mode]));
+
+  // Hero 区
+  let y;
+  if(r.hero && r.hero.type==="wage"){
+    const h=r.hero;
+    // 左：真实时薪大字
+    txt("真实时薪",52,176,15,"#7d8fa8",400);
+    txt("¥"+h.realHourly.toFixed(1),52,238,54,"#ffffff",800);
+    txt("/ 小时",52+ctxWidth("¥"+h.realHourly.toFixed(1),54,800),238,17,"#7d8fa8",400);
+    txt(`名义 ¥${h.nominalHourly.toFixed(1)} → 真实 ¥${h.realHourly.toFixed(1)}`,52,272,16,"#8ea3bd",400);
+    ctx.fillStyle="rgba(255,184,0,.16)";
+    roundRect(52,290,150,32,16); ctx.fill();
+    txt(`时薪缩水 ${h.shrink}%`,127,311,15,"#ffb800",700,"center");
+    // 右：分数环
+    drawScoreRing(330,250,66,r.score,r.color,"体检分");
+    // 段位徽章
+    ctx.fillStyle=r.color+"1f"; roundRect(430,196,190,40,20); ctx.fill();
+    ctx.strokeStyle=r.color+"66"; ctx.lineWidth=1.5; roundRect(430,196,190,40,20); ctx.stroke();
+    txt(r.tag,525,222,16,r.color,800,"center");
+    let vy=wrap(r.verdict,430,268,W-52-430,17,"#cfdcec",25,500);
+    // 时间账单三块
+    const bills=[["会议烧掉","¥"+fmt(h.meetingCost)],["加班白送","¥"+fmt(h.overtimeGift)],["通勤年成本","¥"+fmt(h.commuteYear)]];
+    txt("今日时间账单",52,352,15,"#4b5c73",400);
+    bills.forEach((b,i)=>{
+      const bx=52+i*176;
+      ctx.fillStyle="rgba(255,255,255,.04)"; roundRect(bx,364,164,64,10); ctx.fill();
+      txt(b[0],bx+14,388,13,"#7d8fa8",400);
+      txt(b[1],bx+14,416,22,"#ffffff",800);
+    });
+    y=470;
+  } else {
+    drawScoreRing(190,258,84,r.score,r.color,"健康分");
+    ctx.fillStyle=r.color+"1f"; roundRect(320,190,220,42,21); ctx.fill();
+    ctx.strokeStyle=r.color+"66"; ctx.lineWidth=1.5; roundRect(320,190,220,42,21); ctx.stroke();
+    txt(r.tag,430,217,18,r.color,800,"center");
+    let vy=wrap(r.verdict,320,262,W-320-52,18,"#cfdcec",26,500);
+    const bar=r.radar.slice(0,3).map(d=>d[0]+" "+d[1]).join("  ·  ");
+    txt(bar,320,vy+22,14,"#61789a",400);
+    y=460;
+  }
+
+  // 雷达 + 指标
+  drawRadar(190, y+70, 112, r.radar, r.color, "六维体检");
+  const mx=400; let my=y+10;
+  txt("样本概况",mx,my,17,"#ffffff",700); my+=30;
+  r.metrics.forEach(row=>{
+    txt(row[0],mx,my,15,"#7d8fa8",400);
+    txt(String(row[1]),W-52,my,15,"#d8e3f0",600,"right");
+    ctx.strokeStyle="rgba(255,255,255,.05)";
+    ctx.beginPath(); ctx.moveTo(mx,my+10); ctx.lineTo(W-52,my+10); ctx.stroke();
+    my+=30;
+  });
+  y=Math.max(y+200, my+10);
+
+  ctx.strokeStyle="rgba(255,255,255,.10)"; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(52,y-4); ctx.lineTo(W-52,y-4); ctx.stroke();
+
+  y=drawIssues(r,y+26);
+  y=drawRx(r,y+10);
+  y=drawBonus(r,y);
+  drawEpitaph(r);
+  txt("1024 Builder 作品秀 · 用 TRAE 构建 · 数据全程留在本地浏览器",W/2,H-46,14,"#3d4b5e",400,"center");
+}
+function ctxWidth(s,size,weight){
+  ctx.font=font(size,weight);
+  return ctx.measureText(s).width;
+}
+
+/* ============================================================
+   长期榜单：localStorage + 榜单码接力（零后端联机）
+   ============================================================ */
+const BK="check1024_board_v1";
+function loadBoard(){ try{ return JSON.parse(localStorage.getItem(BK)||"[]"); }catch(e){ return []; } }
+function saveBoard(l){ try{ localStorage.setItem(BK,JSON.stringify(l)); }catch(e){} }
+function boardAdd(item){
+  const l=loadBoard();
+  const i=l.findIndex(x=>x.n===item.n && x.m===item.m);
+  if(i>=0) l[i]=item; else l.push(item);
+  saveBoard(l);
+  renderBoard();
+}
+function encodeItem(it){
+  try{ return btoa(unescape(encodeURIComponent(JSON.stringify(it)))); }catch(e){ return ""; }
+}
+function decodeItem(code){
+  try{ return JSON.parse(decodeURIComponent(escape(atob(code)))); }catch(e){ return null; }
+}
+function renderBoard(){
+  const l=loadBoard();
+  const box=document.getElementById("boardList");
+  document.getElementById("bcount").textContent = l.length? `共 ${l.length} 条记录`:"";
+  document.getElementById("boardPanel").style.display = l.length?"block":"none";
+  if(!l.length){ box.innerHTML=""; return; }
+  const sorted=[...l].sort((a,b)=>b.s-a.s);
+  box.innerHTML=sorted.slice(0,10).map((it,i)=>
+    `<div class="bitem"><span class="rk">${i+1}</span>
+      <span class="nm">${escapeHtml(it.n)}</span>
+      <span class="bar"><span style="width:${it.s}%;background:${it.c||"#00ff9d"}"></span></span>
+      <span class="sc" style="color:${it.c||"#00ff9d"}">${it.s}</span>
+      <span style="width:52px;color:#6b7d95;font-size:11px">${MODES[it.m]?MODES[it.m].name:it.m}</span>
+     </div>`).join("");
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function drawBoard(list){
+  const n=list.length, dpr=2;
+  H=430+Math.min(n,20)*54+190;
+  cv.width=W*dpr; cv.height=H*dpr;
+  cv.style.width="100%"; cv.style.height="auto";
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const avg=Math.round(list.reduce((s,x)=>s+x.s,0)/n);
+  const ac=VERDICT.code.find(x=>avg>=x.min).color;
+  const sorted=[...list].sort((a,b)=>b.s-a.s);
+
+  bgAndFrame("#00ff9d");
+  ctx.fillStyle="#00ff9d"; ctx.fillRect(52,56,26,8); ctx.fillRect(61,47,8,26);
+  txt("1024 CHECKUP LEADERBOARD",92,66,15,"#61789a",600);
+  txt("长期体检榜单",52,108,34,"#ffffff",800);
+  txt(`共 ${n} 条记录`,W-52,66,15,"#61789a",600,"right");
+  const dt=new Date();
+  txt(`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`,W-52,92,15,"#61789a",400,"right");
+  txt("TEAM BOARD",W-52,118,15,"#00ff9d",600,"right");
+  ctx.strokeStyle="rgba(255,255,255,.10)"; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(52,132); ctx.lineTo(W-52,132); ctx.stroke();
+
+  drawScoreRing(175,268,80,avg,ac,"平均分");
+  txt("参与人数",320,206,15,"#7d8fa8",400);
+  txt(String(n),320,250,38,"#ffffff",800);
+  txt("最高分",470,206,15,"#7d8fa8",400);
+  txt(String(sorted[0].s),470,250,38,colorOfScore(sorted[0].s),800);
+  txt("最低分",620,206,15,"#7d8fa8",400);
+  txt(String(sorted[sorted.length-1].s),620,250,38,colorOfScore(sorted[sorted.length-1].s),800);
+
+  let y=400;
+  ctx.fillStyle="#00ff9d"; ctx.fillRect(52,y-14,4,18);
+  txt("排行榜",66,y,21,"#ffffff",800);
+  txt("分数越高越健康",W-52,y,14,"#4b5c73",400,"right");
+  y+=34;
+  txt("成员",78,y,13,"#4b5c73",400);
+  txt("项目",W-300,y,13,"#4b5c73",400,"right");
+  txt("分数",W-142,y,13,"#4b5c73",400,"right");
+  txt("段位",W-56,y,13,"#4b5c73",400,"right");
+  y+=18;
+
+  sorted.slice(0,20).forEach((f,i)=>{
+    const c=colorOfScore(f.s);
+    ctx.fillStyle=i%2?"rgba(255,255,255,.022)":"rgba(255,255,255,.045)";
+    roundRect(66,y,W-132,44,8); ctx.fill();
+    ctx.fillStyle=c; roundRect(78,y+12,26,20,5); ctx.fill();
+    txt(String(i+1),91,y+27,12,"#08121c",800,"center");
+    const nm=f.n.length>16?f.n.slice(0,15)+"…":f.n;
+    txt(nm,116,y+28,15,"#dbe6f2",500);
+    const dept=f.d?f.d:"";
+    if(dept) txt(dept.length>12?dept.slice(0,11)+"…":dept, 300,y+28,13,"#6b7d95",400);
+    const bx=W-330,bw=150;
+    ctx.fillStyle="rgba(255,255,255,.07)"; roundRect(bx,y+18,bw,8,4); ctx.fill();
+    ctx.fillStyle=c; roundRect(bx,y+18,Math.max(4,bw*f.s/100),8,4); ctx.fill();
+    txt(String(f.s),W-142,y+28,16,"#ffffff",700,"right");
+    txt((f.t||"").slice(0,7),W-56,y+28,12,c,600,"right");
+    y+=54;
+  });
+  if(n>20){ txt(`… 另有 ${n-20} 条未展示`,78,y+12,14,"#4b5c73",400); y+=34; }
+
+  y+=20;
+  ctx.fillStyle="rgba(255,255,255,.035)";
+  roundRect(52,y,W-104,92,14); ctx.fill();
+  ctx.strokeStyle="rgba(255,255,255,.07)"; ctx.lineWidth=1;
+  roundRect(52,y,W-104,92,14); ctx.stroke();
+  txt("榜单诊断",78,y+34,14,"#4b5c73",400);
+  const line = avg>=80?"这支队伍相当能打，请保持。"
+             : avg>=60?"整体尚可，仍有拖后腿的，建议从最后几名开始改。"
+             : avg>=40?"团队整体进入亚健康区间，建议立一条改进流水线。"
+             : "情况不太妙，建议从最惨的那个开始动刀。";
+  wrap("「"+line+"」",78,y+68,W-160,20,ac,27,600);
+  txt("1024 Builder 作品秀 · 用 TRAE 构建 · 榜单数据存在本地浏览器",W/2,H-46,14,"#3d4b5e",400,"center");
+}
+function colorOfScore(s){ return VERDICT.code.find(x=>s>=x.min).color; }
+
+/* ============================================================
+   交互
+   ============================================================ */
+const $=id=>document.getElementById(id);
+let last=null, teamList=null;
+
+function toast(msg){
+  const t=$("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),1900);
+}
+
+/* Tab 切换 */
+function buildTabs(){
+  $("tabs").innerHTML=Object.keys(MODES).map(k=>
+    `<button class="tab${k===mode?" on":""}" data-mode="${k}">
+       <span class="dot" style="background:${MODES[k].color}"></span>${MODES[k].name}
+     </button>`).join("");
+  document.querySelectorAll(".tab").forEach(b=>{
+    b.onclick=()=>{
+      mode=b.dataset.mode;
+      document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x.dataset.mode===mode));
+      const m=MODES[mode];
+      document.documentElement.style.setProperty("--accent",m.color);
+      document.documentElement.style.setProperty("--accent2",m.accent2);
+      $("inTitle").textContent=m.title;
+      $("hint").innerHTML=m.hint;
+      $("paneWork").style.display = mode==="work"?"block":"none";
+      $("paneText").style.display = mode==="work"?"none":"block";
+      if(mode!=="work"){
+        $("code").placeholder=m.ph;
+        buildDemos();
+      }
+      $("stat").textContent="";
+    };
+  });
+}
+function buildDemos(){
+  const box=$("demos");
+  if(!DEMO[mode]){ box.innerHTML=""; return; }
+  const keys=Object.keys(DEMO[mode]);
+  const labels={legacy:"示例：祖传代码",normal:"示例：普通业务代码",good:"示例：优雅典范",
+                vague:"示例：模糊需求",bad:"示例：一句话玄学"};
+  box.innerHTML=keys.map(k=>`<button data-demo="${k}">${labels[k]||"示例："+k}</button>`).join("");
+  document.querySelectorAll("[data-demo]").forEach(b=>{
+    b.onclick=()=>{ $("code").value=DEMO[mode][b.dataset.demo]; run(); };
+  });
+}
+
+/* 滑块数值显示 */
+const SLIDERS=[["onsite","v_onsite",v=>v+" 小时"],["commute","v_commute",v=>v+" 分钟"],
+  ["meeting","v_meeting",v=>v+" 分钟"],["interrupt","v_interrupt",v=>v+" 次"],
+  ["overtime","v_overtime",v=>v+" 分钟"],["rest","v_rest",v=>v+" 分钟"]];
+function syncSliders(){
+  SLIDERS.forEach(([id,vid,fmt])=>{ $(vid).textContent=fmt($(id).value); });
+}
+SLIDERS.forEach(([id,vid,fmt])=>{
+  $(id).addEventListener("input",()=>{ $(vid).textContent=fmt($(id).value); });
+});
+["salary","wdays"].forEach(id=>$(id).addEventListener("input",()=>{}));
+
+function run(){
+  const src=$("code").value.trim();
+  const minLen = mode==="code" ? 20 : 4;
+  if(src.length<minLen){ toast("多粘一点才能体检"); return; }
+  last = mode==="code"?analyzeCode(src) : mode==="desc"?analyzeDesc(src) : analyzePrompt(src);
+  teamList=null;
+  drawReport(last);
+  $("ph").style.display="none"; cv.style.display="block"; $("acts").style.display="flex"; $("shareBar").style.display="flex";
+  $("stat").textContent=`${src.length} 字符`;
+  cv.scrollIntoView({behavior:"smooth",block:"center"});
+}
+function runWork(){
+  const inp={salary:$("salary").value,wdays:$("wdays").value,onsite:$("onsite").value,
+    commute:$("commute").value,meeting:$("meeting").value,interrupt:$("interrupt").value,
+    overtime:$("overtime").value,rest:$("rest").value,tasks:$("tasks").value};
+  last=analyzeWork(inp);
+  teamList=null;
+  drawReport(last);
+  $("ph").style.display="none"; cv.style.display="block"; $("acts").style.display="flex"; $("shareBar").style.display="flex";
+  $("stat").textContent=`真实时薪 ¥${last.hero.realHourly.toFixed(1)}`;
+  cv.scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+$("run").onclick=run;
+$("runWork").onclick=runWork;
+$("clr").onclick=()=>{ $("code").value=""; $("stat").textContent=""; };
+$("wclr").onclick=()=>{ ["onsite","commute","meeting","interrupt","overtime","rest"].forEach(id=>{
+  const el=$(id); el.value=el.defaultValue; el.dispatchEvent(new Event("input")); }); $("tasks").value=""; };
+$("up").onclick=()=>$("file").click();
+$("file").onchange=e=>handleFiles([...e.target.files]);
+
+function handleFiles(files){
+  if(!files.length) return;
+  if(files.length===1){
+    const fr=new FileReader();
+    fr.onload=()=>{ $("code").value=fr.result; run(); };
+    fr.readAsText(files[0],"utf-8"); return;
+  }
+  let done=0; const out=[];
+  files.forEach(f=>{
+    const fr=new FileReader();
+    fr.onload=()=>{
+      const src=String(fr.result||"");
+      if(src.trim().length>20){ const r=analyzeCode(src); r.name=f.name; out.push(r); }
+      if(++done===files.length) finishTeam(out,files.length);
+    };
+    fr.readAsText(f,"utf-8");
+  });
+}
+function finishTeam(list,total){
+  if(!list.length){ toast("没读到有效文件"); return; }
+  teamList=list;
+  $("code").value=`【团队模式】已体检 ${list.length}/${total} 个文件\n`+
+    list.slice().sort((a,b)=>a.score-b.score).map(r=>`  ${String(r.score).padStart(3)} 分  ${r.name}`).join("\n");
+  drawTeamBoard(list);
+}
+function drawTeamBoard(list){
+  const items=list.map(r=>({n:r.name,d:"",s:r.score,c:r.color,m:"code",t:r.tag}));
+  drawBoard(items);
+  $("ph").style.display="none"; cv.style.display="block"; $("acts").style.display="flex"; $("shareBar").style.display="none";
+  cv.scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+/* 加入榜单 */
+$("joinBoard").onclick=()=>{
+  if(!last){ toast("先体检一次"); return; }
+  const name=prompt("给你的这条记录起个名字（昵称 / 部门 / 文件名都行）：","我");
+  if(!name) return;
+  const dept=prompt("所属团队 / 部门（可留空）：","")||"";
+  boardAdd({n:name.slice(0,16),d:dept.slice(0,12),s:last.score,c:last.color,m:last.mode,t:last.tag,
+            h:last.hero?Math.round(last.hero.realHourly):null, ts:Date.now()});
+  toast("已加入榜单");
+};
+$("showBoard").onclick=()=>{
+  const l=loadBoard();
+  if(!l.length){ toast("榜单还是空的"); return; }
+  teamList=l; drawBoard(l);
+  $("ph").style.display="none"; cv.style.display="block"; $("acts").style.display="flex"; $("shareBar").style.display="none";
+  cv.scrollIntoView({behavior:"smooth",block:"center"});
+};
+$("shareCode").onclick=()=>{
+  const l=loadBoard();
+  if(!l.length){ toast("榜单还是空的"); return; }
+  const mine=l[l.length-1];
+  const code=encodeItem(mine);
+  const url=location.href.split("#")[0]+"#lb="+code;
+  navigator.clipboard.writeText(url).then(()=>toast("榜单码链接已复制，发群里即可"),()=>toast("复制失败"));
+};
+$("pasteCode").onclick=ingestFromPrompt;
+$("clrBoard").onclick=()=>{ if(confirm("清空本地榜单？")){ saveBoard([]); renderBoard(); toast("已清空"); } };
+window.addEventListener("hashchange", applyHash);
+
+/* 榜单码并入（零后端联机：通过链接接力，不经任何服务器） */
+function ingestCodes(raw){
+  let added=0;
+  raw.split(",").map(s=>s.trim()).filter(Boolean).forEach(code=>{
+    const it=decodeItem(code);
+    if(it&&it.n&&typeof it.s==="number"){
+      const l=loadBoard();
+      if(!l.find(x=>x.n===it.n&&x.m===it.m)){ l.push(it); saveBoard(l); added++; }
+    }
+  });
+  if(added){ renderBoard(); toast(`${added} 位成员已并入你的榜单`); }
+  return added;
+}
+function ingestFromHash(){
+  const m=location.hash.match(/lb=([^&]+)/);
+  if(m) ingestCodes(decodeURIComponent(m[1]));
+}
+function ingestFromPrompt(){
+  const raw=prompt("粘贴同事发来的榜单码或分享链接：","");
+  if(!raw) return;
+  const m=raw.match(/lb=([^&]+)/);
+  const code=m?m[1]:raw.trim();
+  const n=ingestCodes(code);
+  if(!n) toast("没能识别这段榜单码");
+}
+
+/* ============================================================
+   结果卡分享：链接（#r=）+ 结果码（文本接力）
+   ============================================================ */
+function encodeResult(r){
+  const o={mode:r.mode, score:r.score, tag:r.tag, color:r.color, verdict:r.verdict,
+    epitaph:r.epitaph, radar:r.radar, metrics:r.metrics, issues:r.issues, rx:r.rx,
+    hero:r.hero, bonus:r.bonus, nickname:r.nickname};
+  try{ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))); }catch(e){ return ""; }
+}
+function decodeResult(code){
+  let o;
+  try{ o=JSON.parse(decodeURIComponent(escape(atob(code)))); }catch(e){ return null; }
+  if(!o || typeof o!=="object" || !MODES[o.mode]) return null;
+  if(typeof o.score!=="number" || o.score<0 || o.score>100) return null;
+  if(!Array.isArray(o.radar) || o.radar.length<3) return null;
+  if(!Array.isArray(o.metrics) || !o.metrics.length) return null;
+  const vb=VERDICT[o.mode].find(x=>o.score>=x.min)||{};
+  o.tag = typeof o.tag==="string" ? o.tag : (vb.tag||"");
+  o.color = typeof o.color==="string" ? o.color : (vb.color||MODES[o.mode].color);
+  o.verdict = typeof o.verdict==="string" ? o.verdict : "";
+  o.epitaph = typeof o.epitaph==="string" ? o.epitaph : "";
+  o.issues = Array.isArray(o.issues) ? o.issues : [];
+  o.rx = Array.isArray(o.rx)&&o.rx.length ? o.rx : [Rx["deep"]];
+  o.bonus = o.bonus&&Array.isArray(o.bonus.lines) ? o.bonus : null;
+  if(o.hero && o.hero.type==="wage" && typeof o.hero.realHourly!=="number") o.hero=null;
+  o.nickname = (typeof o.nickname==="string"&&o.nickname) ? o.nickname : "匿名";
+  return o;
+}
+function shareGuide(r){
+  if(r.mode==="work"){
+    const h=r.hero||{};
+    return `我今天做个体检：真实时薪 ¥${(h.realHourly||0).toFixed(1)}，缩水 ${h.shrink||0}%。\n体检分 ${r.score}，段位「${r.tag}」。#1024Builder作品秀`;
+  }
+  if(r.mode==="code") return `我给我家代码做个体检：${r.score} 分，段位「${r.tag}」。#1024Builder作品秀`;
+  if(r.mode==="desc") return `我的需求描述体检：${r.score} 分「${r.tag}」。#1024Builder作品秀`;
+  if(r.mode==="prompt") return `我的提示词体检：${r.score} 分「${r.tag}」。#1024Builder作品秀`;
+  return "";
+}
+function confirmShare(r){
+  if(r.mode==="work") return confirm("该链接/结果码含你的真实时薪（可反推月薪），确定分享？");
+  if(r.mode==="desc"||r.mode==="prompt") return confirm("该链接/结果码含你的原文或改写片段，确定分享？");
+  return true;
+}
+function copyText(text, okMsg){
+  const done=()=>toast(okMsg||"已复制");
+  const fail=()=>toast("复制失败，请手动复制");
+  const fallback=()=>{
+    const ta=document.createElement("textarea");
+    ta.value=text; ta.style.position="fixed"; ta.style.top="-9999px"; ta.style.opacity="0";
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    let ok=false; try{ ok=document.execCommand("copy"); }catch(e){}
+    document.body.removeChild(ta);
+    ok?done():fail();
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done, fallback);
+  } else fallback();
+}
+function getNick(){ return $("nick").value.trim()||"匿名"; }
+
+$("copyResultLink").onclick=()=>{
+  if(!last){ toast("先体检一次"); return; }
+  if(!confirmShare(last)) return;
+  last.nickname=getNick();
+  const code=encodeResult(last);
+  if(!code){ toast("生成失败"); return; }
+  if(code.length>8000){ toast("内容太长，建议直接保存 PNG 分享"); return; }
+  const url=location.href.split('#')[0]+"#r="+code;
+  copyText(shareGuide(last)+"\n\n打开看你的体检报告：\n"+url, "结果链接已复制");
+};
+$("copyResultCode").onclick=()=>{
+  if(!last){ toast("先体检一次"); return; }
+  if(!confirmShare(last)) return;
+  last.nickname=getNick();
+  const code=encodeResult(last);
+  if(!code){ toast("生成失败"); return; }
+  if(code.length>8000){ toast("内容太长，建议直接保存 PNG 分享"); return; }
+  copyText(shareGuide(last)+"\n\n结果码："+code+"\n打开 1024 体检中心 Pro，点「粘贴结果码」即可查看", "结果码已复制");
+};
+$("pasteResult").onclick=()=>{
+  const raw=(prompt("粘贴结果码，或分享链接（形如 …#r=…）：","")||"").trim();
+  if(!raw) return;
+  let code=null;
+  const m=raw.match(/r=([A-Za-z0-9+/=]+)/);
+  if(m){ code=m[1]; }
+  else{
+    const cand=raw.split(/\s+/).filter(s=>/^[A-Za-z0-9+/=]{16,}$/.test(s));
+    code=cand.sort((a,b)=>b.length-a.length)[0]||null;
+  }
+  if(!code){ toast("没能识别这段结果码"); return; }
+  try{ code=decodeURIComponent(code); }catch(e){}
+  const r=decodeResult(code);
+  if(!r){ toast("没能识别这段结果码"); return; }
+  enterShared(r);
+};
+
+/* 通过 URL hash 打开分享结果 / 退出 */
+let sharedView=false;
+function handleResultHash(){
+  const m=location.hash.match(/r=([^&]+)/);
+  if(!m) return null;
+  let c=m[1]; try{ c=decodeURIComponent(c); }catch(e){}
+  return decodeResult(c);
+}
+function enterShared(r){
+  sharedView=true; last=r; teamList=null;
+  drawReport(r);
+  $("ph").style.display="none"; cv.style.display="block";
+  $("acts").style.display="flex"; $("shareBar").style.display="flex";
+  $("inputPanel").style.display="none";
+  $("tabs").style.display="none";
+  $("pasteRow").style.display="none";
+  $("viewBannerName").textContent=r.nickname||"匿名";
+  $("viewBanner").style.display="flex";
+  cv.scrollIntoView({behavior:"smooth",block:"center"});
+}
+function exitShared(){
+  sharedView=false; last=null;
+  $("acts").style.display="none"; $("shareBar").style.display="none";
+  cv.style.display="none"; $("ph").style.display="";
+  $("inputPanel").style.display=""; $("tabs").style.display="";
+  $("pasteRow").style.display=""; $("viewBanner").style.display="none";
+  $("stat").textContent="";
+}
+function applyHash(){
+  const r=handleResultHash();
+  if(r) enterShared(r);
+  else if(sharedView) exitShared();
+  ingestFromHash();
+}
+$("exitShared").onclick=()=>{ location.hash=""; exitShared(); };
+
+/* 保存 / 复制 */
+$("save").onclick=()=>{
+  if(!last&&!teamList) return;
+  const fn = teamList? `1024体检榜_${teamList.length}条.png`
+    : `1024${MODES[last.mode].name}_${last.score}分.png`;
+  const doSave=url=>{ const a=document.createElement("a"); a.href=url; a.download=fn; a.click(); };
+  try{
+    cv.toBlob(b=>{ if(b){ const u=URL.createObjectURL(b); doSave(u); setTimeout(()=>URL.revokeObjectURL(u),1500);} else doSave(cv.toDataURL("image/png")); toast("已保存 PNG"); },"image/png");
+  }catch(e){ doSave(cv.toDataURL("image/png")); toast("已保存 PNG"); }
+};
+$("copy").onclick=()=>{
+  if(!last){ toast("先体检一次"); return; }
+  let s;
+  if(last.mode==="work"){
+    const h=last.hero;
+    s=`我今天做了个打工人体检：\n名义时薪 ¥${h.nominalHourly.toFixed(1)}，真实时薪 ¥${h.realHourly.toFixed(1)}，缩水 ${h.shrink}%。\n`+
+      `今天开了 ${Math.round(h.meetingCost)} 元的会，加班白送 ¥${h.overtimeGift}。\n`+
+      `体检分 ${last.score} 分，段位「${last.tag}」。\n\n#1024Builder作品秀 你也来算算你的真实时薪？`;
+  } else if(last.mode==="prompt"&&last.bonus){
+    s=`我的提示词体检：${last.score} 分（${last.tag}）\n${last.verdict}\n\n优化后的版本：\n${last.bonus.lines.join("\n")}\n\n#1024Builder作品秀`;
+  } else if(last.mode==="desc"&&last.bonus){
+    s=`我的需求描述体检：${last.score} 分（${last.tag}）\nAI 友好版改写：\n${last.bonus.lines[0]}\n\n#1024Builder作品秀`;
+  } else {
+    s=`我给代码做了个体检：${last.score} 分，段位「${last.tag}」。\n${last.verdict}\n${last.epitaph}\n\n#1024Builder作品秀 你也来测测你家代码几分？`;
+  }
+  copyText(s, "已复制");
+};
+
+/* 初始化 */
+buildTabs();
+buildDemos();
+syncSliders();
+renderBoard();
+applyHash();
+window.addEventListener("keydown",e=>{ if((e.metaKey||e.ctrlKey)&&e.key==="Enter"){ mode==="work"?runWork():run(); } });
+</script>
+</body>
+</html>
