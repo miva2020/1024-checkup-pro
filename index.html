@@ -120,6 +120,9 @@
   .nickfield input { width:150px; background:#060a11; color:var(--text); border:1px solid var(--line);
     border-radius:8px; padding:6px 10px; font-size:12px; font-family:inherit; outline:none; }
   .nickfield input:focus { border-color:var(--accent); }
+  .pkbtn { padding:3px 9px; font-size:11px; flex:none; background:#16202e; border:1px solid var(--line);
+           border-radius:6px; color:var(--dim); cursor:pointer; }
+  .pkbtn:hover { border-color:var(--accent); color:var(--accent); }
 </style>
 </head>
 <body>
@@ -1201,8 +1204,15 @@ function renderBoard(){
       <span class="nm">${escapeHtml(it.n)}</span>
       <span class="bar"><span style="width:${it.s}%;background:${it.c||"#00ff9d"}"></span></span>
       <span class="sc" style="color:${it.c||"#00ff9d"}">${it.s}</span>
-      <span style="width:52px;color:#6b7d95;font-size:11px">${MODES[it.m]?MODES[it.m].name:it.m}</span>
+      <span style="width:46px;color:#6b7d95;font-size:11px">${MODES[it.m]?MODES[it.m].name:it.m}</span>
+      <button class="pkbtn" data-idx="${i}" data-ok="${it.r?1:0}">PK</button>
      </div>`).join("");
+  document.querySelectorAll(".pkbtn").forEach(b=>{
+    b.onclick=()=>{
+      if(b.dataset.ok!=="1"){ toast("这条记录没有雷达数据，重新体检一次即可 PK"); return; }
+      pkInit(parseInt(b.dataset.idx));
+    };
+  });
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
@@ -1281,10 +1291,117 @@ function drawBoard(list){
 function colorOfScore(s){ return VERDICT.code.find(x=>s>=x.min).color; }
 
 /* ============================================================
+   双人雷达 PK
+   ============================================================ */
+function diffDim(a,b){
+  let mi=0,mv=-1;
+  const n=Math.min(a.r.length,b.r.length);
+  for(let i=0;i<n;i++){ const d=Math.abs(a.r[i][1]-b.r[i][1]); if(d>mv){ mv=d; mi=i; } }
+  return { name:a.r[mi][0], val:mv };
+}
+function strongest(x){ return x.r.reduce((m,d)=>d[1]>m[1]?d:m, x.r[0]); }
+function taunt(diff){ return diff<=5?"势均力敌，建议加赛。":diff<=15?"略胜一筹。":diff<=30?"不在一个量级。":"这不是 PK，这是教学局。"; }
+function drawVsRadarGrid(cx,cy,R,n){
+  ctx.strokeStyle="rgba(255,255,255,.09)"; ctx.lineWidth=1;
+  for(let k=1;k<=4;k++){
+    ctx.beginPath();
+    for(let i=0;i<n;i++){
+      const a=-Math.PI/2+i*Math.PI*2/n, rr=R*k/4;
+      const px=cx+Math.cos(a)*rr, py=cy+Math.sin(a)*rr;
+      i?ctx.lineTo(px,py):ctx.moveTo(px,py);
+    }
+    ctx.closePath(); ctx.stroke();
+  }
+  for(let i=0;i<n;i++){
+    const a=-Math.PI/2+i*Math.PI*2/n;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(a)*R,cy+Math.sin(a)*R); ctx.stroke();
+  }
+}
+function drawVsRadarPoly(cx,cy,R,dims,color){
+  ctx.beginPath();
+  dims.forEach((d,i)=>{
+    const a=-Math.PI/2+i*Math.PI*2/dims.length, rr=R*Math.max(.08,d[1]/100);
+    const px=cx+Math.cos(a)*rr, py=cy+Math.sin(a)*rr;
+    i?ctx.lineTo(px,py):ctx.moveTo(px,py);
+  });
+  ctx.closePath(); ctx.fillStyle=color+"22"; ctx.fill();
+  ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.stroke();
+}
+function drawVersus(a,b){
+  H=900; const dpr=2;
+  cv.width=W*dpr; cv.height=H*dpr;
+  cv.style.width="100%"; cv.style.height="auto";
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const bColor="#ff8a3d";
+  bgAndFrame("#00ff9d");
+  ctx.fillStyle="#00ff9d"; ctx.fillRect(52,56,26,8); ctx.fillRect(61,47,8,26);
+  txt("1024 CHECKUP VERSUS",92,66,15,"#61789a",600);
+  txt("双人雷达 PK",52,108,34,"#ffffff",800);
+  const dt=new Date();
+  txt(`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`,W-52,66,15,"#61789a",400,"right");
+  txt("VS MODE",W-52,108,15,"#00ff9d",600,"right");
+  ctx.strokeStyle="rgba(255,255,255,.10)"; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(52,132); ctx.lineTo(W-52,132); ctx.stroke();
+
+  const diff=Math.abs(a.s-b.s);
+  txt(a.n.length>12?a.n.slice(0,11)+"…":a.n, 52, 178, 22, a.c||"#00ff9d", 800);
+  txt(a.s+" 分", 52, 206, 15, a.c||"#00ff9d", 600);
+  txt(b.n.length>12?b.n.slice(0,11)+"…":b.n, W-52, 178, 22, bColor, 800, "right");
+  txt(b.s+" 分", W-52, 206, 15, bColor, 600, "right");
+  txt("VS", W/2, 196, 30, "#ffffff", 800, "center");
+
+  const cx=450, cy=430, R=155;
+  const n=Math.max(a.r.length,b.r.length);
+  drawVsRadarGrid(cx,cy,R,n);
+  drawVsRadarPoly(cx,cy,R,b.r,bColor);
+  drawVsRadarPoly(cx,cy,R,a.r,a.c||"#00ff9d");
+  a.r.forEach((d,i)=>{
+    const ang=-Math.PI/2+i*Math.PI*2/n;
+    txt(d[0], cx+Math.cos(ang)*(R+26), cy+Math.sin(ang)*(R+26)+5, 13, "#8ea3bd", 500, "center");
+  });
+  txt(String(diff), cx, cy+6, 34, "#ffffff", 800, "center");
+  txt("分差", cx, cy+30, 12, "#8ea3bd", 400, "center");
+
+  const di=diffDim(a,b), sa=strongest(a), sb=strongest(b);
+  let y=700;
+  ctx.fillStyle="rgba(255,255,255,.04)"; roundRect(52,y,W-104,150,14); ctx.fill();
+  ctx.strokeStyle="rgba(255,255,255,.07)"; roundRect(52,y,W-104,150,14); ctx.stroke();
+  txt("差距最大的维度",78,y+32,14,"#4b5c73",400);
+  txt(`「${di.name}」差 ${di.val} 分`,78,y+60,18,"#ffffff",700);
+  txt(`各自最强：${a.n}「${sa.name}」· ${b.n}「${sb.name}」`,78,y+92,15,"#8ea3bd",400);
+  txt(taunt(diff),78,y+126,16, diff>30?"#ff8a3d":"#00ff9d", 700);
+
+  const foot = a.m!==b.m ? "跨模式对比，仅供参考" : "1024 Builder 作品秀 · 用 TRAE 构建 · 数据留在本地";
+  txt(foot, W/2, H-46, 13, "#3d4b5e", 400, "center");
+}
+function pkShow(a,b){
+  vsPair={a,b}; last=null; teamList=null;
+  drawVersus(a,b);
+  $("ph").style.display="none"; cv.style.display="block"; $("acts").style.display="flex"; $("shareBar").style.display="none";
+  cv.scrollIntoView({behavior:"smooth",block:"center"});
+}
+function pkInit(idx){
+  const l=loadBoard();
+  const sorted=[...l].sort((a,b)=>b.s-a.s);
+  const a=sorted[idx];
+  if(!a) return;
+  const others=sorted.filter((x,i)=>i!==idx);
+  if(!others.length){ toast("榜单里只有一个人，先多存几条"); return; }
+  const msg="选择对手（输入序号）：\n"+others.map((x,i)=>(i+1)+". "+x.n+"（"+x.s+" 分）").join("\n");
+  const sel=prompt(msg,"1");
+  if(!sel) return;
+  const bi=parseInt(sel,10)-1;
+  if(isNaN(bi)||bi<0||bi>=others.length){ toast("无效选择"); return; }
+  const b=others[bi];
+  if(!b.r){ toast("这条记录没有雷达数据，重新体检一次即可 PK"); return; }
+  pkShow(a,b);
+}
+
+/* ============================================================
    交互
    ============================================================ */
 const $=id=>document.getElementById(id);
-let last=null, teamList=null;
+let last=null, teamList=null, vsPair=null;
 
 function toast(msg){
   const t=$("toast"); t.textContent=msg; t.classList.add("show");
@@ -1411,7 +1528,7 @@ $("joinBoard").onclick=()=>{
   if(!name) return;
   const dept=prompt("所属团队 / 部门（可留空）：","")||"";
   boardAdd({n:name.slice(0,16),d:dept.slice(0,12),s:last.score,c:last.color,m:last.mode,t:last.tag,
-            h:last.hero?Math.round(last.hero.realHourly):null, ts:Date.now()});
+            h:last.hero?Math.round(last.hero.realHourly):null, r:last.radar, ts:Date.now()});
   toast("已加入榜单");
 };
 $("showBoard").onclick=()=>{
@@ -1593,8 +1710,9 @@ $("exitShared").onclick=()=>{ location.hash=""; exitShared(); };
 
 /* 保存 / 复制 */
 $("save").onclick=()=>{
-  if(!last&&!teamList) return;
-  const fn = teamList? `1024体检榜_${teamList.length}条.png`
+  if(!last&&!teamList&&!vsPair) return;
+  const fn = vsPair? "1024雷达PK.png"
+    : teamList? `1024体检榜_${teamList.length}条.png`
     : `1024${MODES[last.mode].name}_${last.score}分.png`;
   const doSave=url=>{ const a=document.createElement("a"); a.href=url; a.download=fn; a.click(); };
   try{
